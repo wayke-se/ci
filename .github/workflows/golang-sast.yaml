@@ -9,6 +9,8 @@ on:
         required: false
         default: "wayke-snyk-pilot-default-organization"
     secrets:
+      go-token:
+        required: false
       snyk-token:
         required: true
 
@@ -27,6 +29,15 @@ jobs:
         with:
           go-version: ${{ inputs.go-version }}
 
+      - name: Configure git for private modules
+        if: ${{ secrets.go-token != "" }}
+        run: |
+          git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
+
+      - name: Download dependencies
+        run: |
+          go mod download
+
       - name: Run go-vet
         run: go vet ./...
 
@@ -41,6 +52,13 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ inputs.go-version }}
+
+      - name: Configure git for private modules
+        run: git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com"
+
+      - name: Download dependencies
+        run: |
+          go mod download
 
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -58,6 +76,13 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ inputs.go-version }}
+
+      - name: Configure git for private modules
+        run: git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com"
+
+      - name: Download dependencies
+        run: |
+          go mod download
 
       - name: Collect dependencies
         run: go list -json -m all > go.list
@@ -77,6 +102,13 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ inputs.go-version }}
+
+      - name: Configure git for private modules
+        run: git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com"
+
+      - name: Download dependencies
+        run: |
+          go mod download
 
       - name: Run govulncheck
         run: |
