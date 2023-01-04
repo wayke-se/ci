@@ -56,7 +56,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ${{ input.dockerfile }}
+          file: ${{ inputs.dockerfile }}
           platforms: linux/amd64
           tags: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
           secrets: |
