@@ -22,7 +22,7 @@ on:
         required: true
     outputs:
       image:
-        value: ${{ jobs.upload-docker-image.outputs.image }}
+        value: ${{ jobs.dockerize.outputs.image }}
 
 name: "Dockerize Go Application"
 
@@ -41,6 +41,9 @@ jobs:
     
     runs-on: ubuntu-latest
     timeout-minutes: 5
+
+    outputs:
+      image: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
 
     steps:
       - uses: actions/checkout@main
@@ -62,6 +65,10 @@ jobs:
           secrets: |
             gotoken=${{ secrets.go-token }}
 
+      - name: Uplad Docker image to ${{ inputs.registry-url }}
+        run: |
+          docker push ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+
   scan-docker-image:
     needs:
       - dockerize
@@ -74,19 +81,3 @@ jobs:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
       snyk-token: ${{ secrets.snyk-token }}
-  
-  upload-docker-image:
-    needs:
-      - dockerize
-      - scan-docker-image
-    
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-
-    outputs:
-      image: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
-
-    steps:
-      - name: Uplad Docker image to ${{ inputs.registry-url }}
-        run: |
-          docker push ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
