@@ -54,6 +54,9 @@ jobs:
       SNYK_TOKEN: "${{ secrets.snyk-token }}"
 
     permissions:
+      actions: read
+      contents: read
+      statuses: read
       security-events: write
 
     steps:

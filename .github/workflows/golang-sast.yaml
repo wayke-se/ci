@@ -96,8 +96,7 @@ jobs:
     timeout-minutes: 2
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Setup Go
         uses: actions/setup-go@v3
@@ -128,6 +127,9 @@ jobs:
       SNYK_TOKEN: "${{ secrets.snyk-token }}"
 
     permissions:
+      actions: read
+      contents: read
+      statuses: read
       security-events: write
 
     steps:
