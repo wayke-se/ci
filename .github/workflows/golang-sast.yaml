@@ -30,9 +30,8 @@ jobs:
           go-version: ${{ inputs.go-version }}
 
       - name: Configure git for private modules
-        if: ${{ secrets.go-token != "" }}
         run: |
-          git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
+          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
 
       - name: Download dependencies
         run: |
@@ -54,7 +53,8 @@ jobs:
           go-version: ${{ inputs.go-version }}
 
       - name: Configure git for private modules
-        run: git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com"
+        run: |
+          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
 
       - name: Download dependencies
         run: |
@@ -78,7 +78,8 @@ jobs:
           go-version: ${{ inputs.go-version }}
 
       - name: Configure git for private modules
-        run: git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com"
+        run: |
+          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
 
       - name: Download dependencies
         run: |
@@ -104,7 +105,8 @@ jobs:
           go-version: ${{ inputs.go-version }}
 
       - name: Configure git for private modules
-        run: git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com"
+        run: |
+          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
 
       - name: Download dependencies
         run: |
