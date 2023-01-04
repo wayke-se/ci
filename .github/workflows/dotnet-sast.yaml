@@ -90,6 +90,6 @@ jobs:
         with:
           sarif_file: snyk.code.sarif
 
-      - name: Verify Snyk results
+      - name: Snyk failure - see output of Snyk actions
         if: steps.snyktest.outcome != 'success' || steps.snykcode.outcome != 'success'
         run: exit 1

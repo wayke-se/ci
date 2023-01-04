@@ -69,7 +69,10 @@ jobs:
     uses: ./.github/workflows/docker-sast.yaml
     with:
       image: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+      registry-url: ${{ inputs.registry-url }}
     secrets:
+      registry-username: ${{ secrets.registry-username }}
+      registry-password: ${{ secrets.registry-password }}
       snyk-token: ${{ secrets.snyk-token }}
   
   upload-docker-image:
