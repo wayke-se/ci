@@ -4,6 +4,10 @@ on:
       go-version:
         type: string
         required: true
+      snyk-org:
+        type: string
+        required: false
+        default: "wayke-snyk-pilot-default-organization"
     secrets:
       go-token:
         required: false
@@ -124,19 +128,20 @@ jobs:
       SNYK_TOKEN: "${{ secrets.snyk-token }}"
 
     permissions:
-      actions: read
-      contents: read
-      statuses: read
       security-events: write
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Configure git for private modules
+        run: |
+          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
       
       - name: Run Snyk to check for vulnerabilities
         id: snyktest
         continue-on-error: true
         run: |
-          snyk test --sarif-file-output=snyk.test.sarif --severity-threshold=medium
+          snyk test --org="${{ inputs.snyk-org }}" --sarif-file-output=snyk.test.sarif --severity-threshold=medium
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
@@ -148,7 +153,7 @@ jobs:
         id: snykcode
         continue-on-error: true
         run: |
-          snyk code test --sarif-file-output=snyk.code.sarif --severity-threshold=medium
+          snyk code test --org="${{ inputs.snyk-org }}" --sarif-file-output=snyk.code.sarif --severity-threshold=medium
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
