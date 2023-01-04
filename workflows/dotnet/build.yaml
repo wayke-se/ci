@@ -1,0 +1,92 @@
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        type: string
+        required: true
+      registry-url:
+        type: string
+        required: true
+      dockerfile:
+        type: string
+        required: false
+        default: "./Dockerfile"
+    secrets:
+      registry-username:
+        type: string
+        required: true
+      registry-password:
+        type: string
+        required: true
+      nuget-token:
+        type: string
+        required: false
+      snyk-token:
+        type: string
+        required: true
+    outputs:
+      image:
+        value: ${{ jobs.upload-docker-image.outputs.image }}
+
+name: "Dockerize .NET Application"
+
+jobs:
+  scan-code:
+    uses: wayke-se/ci/dotnet/sast.yaml@master
+    with:
+      dotnet-version: ${{ inputs.dotnet-version }}
+    secrets:
+      snyk-token: ${{ secrets.snyk-token }}
+
+  dockerize:
+    needs:
+      - scan-code
+    
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Connect to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ inputs.registry-url }}
+          username: ${{ secrets.registry-username }}
+          password: ${{ secrets.registry-password }}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ${{ input.dockerfile }}
+          platforms: linux/amd64
+          tags: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+          secrets: |
+            nugettoken=${{ secrets.nuget-token }}
+
+  scan-docker-image:
+    needs:
+      - dockerize
+
+    uses: wayke-se/ci/docker/sast.yaml@master
+    with:
+      image: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+    secrets:
+      snyk-token: ${{ secrets.snyk-token }}
+  
+  upload-docker-image:
+    needs:
+      - dockerize
+      - scan-docker-image
+    
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    outputs:
+      image: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+
+    steps:
+      - name: Uplad Docker image to ${{ inputs.registry-url }}
+        run: |
+          docker push ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}

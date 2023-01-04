@@ -1,0 +1,130 @@
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        type: string
+        required: true
+      snyk-org:
+        type: string
+        required: false
+        default: "wayke-snyk-pilot-default-organization"
+    secrets:
+      snyk-token:
+        required: true
+
+name: "Run SAST for Go"
+
+jobs:
+  go-vet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Run go-vet
+        run: go vet ./...
+
+  golangci-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+
+  sonatype-nancy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Collect dependencies
+        run: go list -json -m all > go.list
+
+      - name: Run nancy dependency scanner
+        uses: sonatype-nexus-community/nancy-github-action@main
+
+  govulncheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Run govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+  
+  snyk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    container: "snyk/snyk:golang"
+
+    env:
+      SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+      SNYK_INTEGRATION_VERSION: golang
+      SNYK_TOKEN: "${{ secrets.snyk-token }}"
+
+    permissions:
+      actions: read
+      contents: read
+      statuses: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Snyk to check for vulnerabilities
+        continue-on-error: true
+        run: |
+          snyk test --org "${{ inputs.snyk-org }}" --sarif-file-output=snyk.test.sarif --severity-threshold=medium
+          export SNYKTEST_EXITCODE=$?
+
+      - name: Upload result to GitHub Code Scanning
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.test.sarif
+
+      - name:
+        continue-on-error: true
+        run: |
+          snyk code test --org "${{ inputs.snyk-org }}" --sarif-file-output=snyk.code.sarif --severity-threshold=medium
+          export SNYKCODE_EXITCODE=$?
+
+      - name: Upload result to GitHub Code Scanning
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.code.sarif
+
+      - run: |
+          [ ${SNYKTEST_EXITCODE} -eq 0 ] && [ ${SNYKCODE_EXITCODE} -eq 0 ]

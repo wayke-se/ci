@@ -1,0 +1,61 @@
+on:
+  workflow_call:
+    inputs:
+      service:
+        type: string
+        required: true
+      image:
+        type: string
+        required: true
+      cluster:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+      kustomize:
+        type: string
+        required: true
+      watch:
+        type: boolean
+        required: false
+        default: false
+    secrets:
+      credentials:
+        type: string
+        required: true
+
+name: "Deploy dockerized application"
+
+jobs:
+  deploy-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v1
+
+      - name: Prepare deployment files
+        run: |
+          pushd deploy/base
+          kustomize edit set image ${{ inputs.service }}="${{ inputs.image }}"
+          popd
+
+      - name: Connect to Azure Kubernetes Service
+        uses: azure/aks-set-context@v1
+        with:
+          creds: ${{ secrets.credentials }}
+          cluster-name: ${{ inputs.cluster }}
+          resource-group: ${{ inputs.environment }}
+
+      - name: Deploy to Azure Kubernetes Service
+        run: |
+          kubectl apply --kustomize ${{ inputs.kustomize }}
+
+      - name: Watch rollout
+        if: ${{ inputs.watch }}
+        run: |
+          kubectl rollout status deploy/${{ inputs.service }} --watch

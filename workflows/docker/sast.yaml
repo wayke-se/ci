@@ -1,0 +1,56 @@
+on:
+  workflow_call:
+    inputs:
+      image:
+        type: string
+        required: true
+    secrets:
+      snyk-token:
+        required: true
+
+name: "Run SAST for Docker image"
+
+jobs:
+  grype:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Run Grype to check Docker image for vulnerabilities
+        uses: anchore/scan-action@v3
+        with:
+          image: ${{ inputs.image }}
+          severity-cutoff: high
+
+  snyk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    container: "snyk/snyk:docker"
+
+    env:
+      SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+      SNYK_INTEGRATION_VERSION: docker
+      SNYK_TOKEN: "${{ secrets.snyk-token }}"
+
+    permissions:
+      actions: read
+      contents: read
+      statuses: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Snyk to check for vulnerabilities
+        continue-on-error: true
+        run: |
+          snyk test --org "${{ inputs.snyk-org }}" --sarif-file-output=snyk.test.sarif --severity-threshold=medium --docker "${{ inputs.image }}"
+          export SNYKTEST_EXITCODE=$?
+
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.test.sarif
+
+      - run: |
+          [ ${SNYKTEST_EXITCODE} -eq 0 ]

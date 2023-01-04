@@ -1,0 +1,76 @@
+on:
+  workflow_call:
+    inputs:
+      dotnet-version:
+        type: string
+        required: true
+    secrets:
+      snyk-token:
+        required: true
+
+name: "Run SAST for .NET"
+
+jobs:
+  package-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
+
+      - name: Run package scanner
+        run: |
+          RESULT=$(dotnet list package --vulnerable --include-transitive)
+          echo "${RESULT}"
+          test $(echo "${RESULT}" | grep -cm 1 "following vulnerable packages") -ne 1
+
+  snyk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    container: "snyk/snyk:dotnet"
+
+    env:
+      SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+      SNYK_INTEGRATION_VERSION: dotnet
+      SNYK_TOKEN: "${{ secrets.snyk-token }}"
+
+    permissions:
+      actions: read
+      contents: read
+      statuses: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Snyk to check for vulnerabilities
+        continue-on-error: true
+        run: |
+          snyk test --all-projects --org "${{ inputs.snyk-org }}" --sarif-file-output=snyk.test.sarif --severity-threshold=medium
+          export SNYKTEST_EXITCODE=$?
+
+      - name: Upload result to GitHub Code Scanning
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.test.sarif
+
+      - name:
+        continue-on-error: true
+        run: |
+          snyk code test --all-projects --org "${{ inputs.snyk-org }}" --sarif-file-output=snyk.code.sarif --severity-threshold=medium
+          export SNYKCODE_EXITCODE=$?
+
+      - name: Upload result to GitHub Code Scanning
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.code.sarif
+
+      - run: |
+          [ ${SNYKTEST_EXITCODE} -eq 0 ] && [ ${SNYKCODE_EXITCODE} -eq 0 ]
