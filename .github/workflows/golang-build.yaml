@@ -36,6 +36,7 @@ jobs:
     with:
       go-version: ${{ inputs.go-version }}
     secrets:
+      go-token: ${{ secrets.go-token }}
       snyk-token: ${{ secrets.snyk-token }}
 
   dockerize:

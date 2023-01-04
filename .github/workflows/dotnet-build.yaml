@@ -36,6 +36,7 @@ jobs:
     with:
       dotnet-version: ${{ inputs.dotnet-version }}
     secrets:
+      nuget-token: ${{ secrets.nuget-token }}
       snyk-token: ${{ secrets.snyk-token }}
 
   dockerize:
