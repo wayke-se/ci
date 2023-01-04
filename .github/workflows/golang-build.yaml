@@ -13,16 +13,12 @@ on:
         default: "./Dockerfile"
     secrets:
       registry-username:
-        type: string
         required: true
       registry-password:
-        type: string
         required: true
       go-token:
-        type: string
         required: false
       snyk-token:
-        type: string
         required: true
     outputs:
       image:
