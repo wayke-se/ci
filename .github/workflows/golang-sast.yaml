@@ -4,10 +4,6 @@ on:
       go-version:
         type: string
         required: true
-      snyk-org:
-        type: string
-        required: false
-        default: "wayke-snyk-pilot-default-organization"
     secrets:
       go-token:
         required: false
@@ -137,10 +133,10 @@ jobs:
       - uses: actions/checkout@v3
       
       - name: Run Snyk to check for vulnerabilities
+        id: snyktest
         continue-on-error: true
         run: |
-          snyk test --org "${{ inputs.snyk-org }}" --sarif-file-output=snyk.test.sarif --severity-threshold=medium
-          export SNYKTEST_EXITCODE=$?
+          snyk test --sarif-file-output=snyk.test.sarif --severity-threshold=medium
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
@@ -148,11 +144,11 @@ jobs:
         with:
           sarif_file: snyk.test.sarif
 
-      - name:
+      - name: Run Snyk to check for code security issues
+        id: snykcode
         continue-on-error: true
         run: |
-          snyk code test --org "${{ inputs.snyk-org }}" --sarif-file-output=snyk.code.sarif --severity-threshold=medium
-          export SNYKCODE_EXITCODE=$?
+          snyk code test --sarif-file-output=snyk.code.sarif --severity-threshold=medium
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
@@ -160,5 +156,6 @@ jobs:
         with:
           sarif_file: snyk.code.sarif
 
-      - run: |
-          [ ${SNYKTEST_EXITCODE} -eq 0 ] && [ ${SNYKCODE_EXITCODE} -eq 0 ]
+      - name: Verify Snyk results
+        if: steps.snyktest.outcome != 'success' || steps.snykcode.outcome != 'success'
+        run: exit 1
