@@ -22,7 +22,6 @@ on:
         default: false
     secrets:
       credentials:
-        type: string
         required: true
 
 name: "Deploy dockerized application"
