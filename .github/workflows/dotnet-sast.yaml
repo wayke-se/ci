@@ -27,7 +27,7 @@ jobs:
       
       - name: Configure NuGet for private packages
         run: |
-          [ ! -z "${{ secrets.nuget-token }} "] && dotnet nuget update source "wayke-gh" --store-password-in-clear-text --configfile NuGet.Config -u "ourbjorn" -p "${{ secrets.nuget-token }}" || true
+          [ ! -z "${{ secrets.nuget-token }}" ] && dotnet nuget update source "wayke-gh" --store-password-in-clear-text --configfile NuGet.Config -u "ourbjorn" -p "${{ secrets.nuget-token }}" || true
 
       - name: Download dependencies
         run: |
@@ -60,7 +60,7 @@ jobs:
       
       - name: Configure NuGet for private packages
         run: |
-          [ ! -z "${{ secrets.nuget-token }} "] && dotnet nuget update source "wayke-gh" --store-password-in-clear-text --configfile NuGet.Config -u "ourbjorn" -p "${{ secrets.nuget-token }}" || true
+          [ ! -z "${{ secrets.nuget-token }}" ] && dotnet nuget update source "wayke-gh" --store-password-in-clear-text --configfile NuGet.Config -u "ourbjorn" -p "${{ secrets.nuget-token }}" || true
       
       - name: Run Snyk to check for vulnerabilities
         id: snyktest
