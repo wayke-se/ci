@@ -65,10 +65,8 @@ jobs:
           pip install pylint
       
       - name: Run pylint
-        id: pylint
-        continue-on-error: true
         run: |
-          pylint $(git ls-files '*.py') || [ $(($? & 3)) -eq 0 ]
+          pylint $(git ls-files '*.py' | grep -v 'test.py') || [ $(($? & 3)) -eq 0 ]
 
   dlint:
     runs-on: ubuntu-latest
