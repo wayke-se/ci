@@ -75,6 +75,7 @@ jobs:
 
     uses: ./.github/workflows/docker-sast.yaml
     with:
+      dockerfile: ${{ inputs.dockerfile }}
       image: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
       registry-url: ${{ inputs.registry-url }}
     secrets:
