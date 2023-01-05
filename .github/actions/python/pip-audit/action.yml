@@ -1,5 +1,13 @@
 name: Python Vulnerability Scanner - pip-audit
 description: pip-audit Dependency SAST scanner for Python
+inputs:
+  requirements-file:
+    description: requirements.txt to audit
+    required: false
+    default: requirements.txt
 runs:
   using: docker
   image: Dockerfile
+  args: [
+    "-r", "${{ inputs.requirements-file }}"
+  ]
