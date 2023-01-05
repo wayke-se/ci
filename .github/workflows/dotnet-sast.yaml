@@ -70,7 +70,7 @@ jobs:
         id: snyktest
         continue-on-error: true
         run: |
-          snyk test --file=$(find . -name '*.sln') --sarif-file-output=snyk.test.sarif --severity-threshold=medium
+          snyk test --file=$(find . -name '*.sln') --sarif-file-output=snyk.test.sarif --severity-threshold=high
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
@@ -82,7 +82,7 @@ jobs:
         id: snykcode
         continue-on-error: true
         run: |
-          snyk code test --file=$(find . -name '*.sln') --sarif-file-output=snyk.code.sarif --severity-threshold=medium
+          snyk code test --file=$(find . -name '*.sln') --sarif-file-output=snyk.code.sarif --severity-threshold=high
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}

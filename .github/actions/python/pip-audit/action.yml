@@ -9,5 +9,5 @@ runs:
   using: docker
   image: Dockerfile
   args: [
-    "-r", "${{ inputs.requirements-file }}"
+    "--requirements-file", "${{ inputs.requirements-file }}"
   ]
