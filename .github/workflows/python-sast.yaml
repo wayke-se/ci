@@ -73,7 +73,7 @@ jobs:
       
       - name: Validate pylint exitcode
         run: |
-          [ $((steps.pylint.outputs.exitcode & 3)) -eq 0 ]
+          [ $((${{ steps.pylint.outputs.exitcode }} & 3)) -eq 0 ]
 
   snyk:
     runs-on: ubuntu-latest
