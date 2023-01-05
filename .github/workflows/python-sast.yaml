@@ -65,9 +65,15 @@ jobs:
           pip install pylint
       
       - name: Run pylint
+        id: pylint
+        continue-on-error: true
         run: |
           pylint --recursive=y .
-          [ $(($? & 3)) -eq 0 ]
+          echo "exitcode=$?" >> $GITHUB_OUTPUT
+      
+      - name: Validate pylint exitcode
+        run: |
+          [ $((steps.pylint.outputs.exitcode & 3)) -eq 0 ]
 
   snyk:
     runs-on: ubuntu-latest
