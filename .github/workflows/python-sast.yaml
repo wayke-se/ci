@@ -62,6 +62,7 @@ jobs:
       - name: Download dependencies
         run: |
           pip install -r ${{ inputs.requirements-file }}
+          pip install pylint
       
       - name: Run pylint
         run: |
