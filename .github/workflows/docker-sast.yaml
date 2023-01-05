@@ -38,7 +38,7 @@ jobs:
       - name: Run Grype to check Docker image for vulnerabilities
         uses: anchore/scan-action@v3
         with:
-          image: ${{ inputs.image }}
+          image: ${{ inputs.registry-url }}/${{ inputs.image }}
           output-format: sarif
           severity-cutoff: high
 
@@ -78,7 +78,7 @@ jobs:
         id: snyktest
         continue-on-error: true
         run: |
-          snyk container test --sarif-file-output=snyk.test.sarif --severity-threshold=medium --file="${{ inputs.dockerfile }}" ${{ inputs.image }}
+          snyk container test --sarif-file-output=snyk.test.sarif --severity-threshold=medium --file="${{ inputs.dockerfile }}" "${{ inputs.registry-url }}/${{ inputs.image }}"
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}

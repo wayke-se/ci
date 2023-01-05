@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 5
 
     outputs:
-      image: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+      image: ${{ github.repository }}:${{ github.sha }}
 
     steps:
       - uses: actions/checkout@main
@@ -72,7 +72,7 @@ jobs:
     uses: ./.github/workflows/docker-sast.yaml
     with:
       dockerfile: ${{ inputs.dockerfile }}
-      image: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+      image: ${{ github.repository }}:${{ github.sha }}
       registry-url: ${{ inputs.registry-url }}
     secrets:
       registry-username: ${{ secrets.registry-username }}
