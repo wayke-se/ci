@@ -43,7 +43,14 @@ jobs:
         uses: anchore/scan-action@v3
         with:
           image: ${{ inputs.image }}
+          output-format: sarif
           severity-cutoff: high
+
+      - name: Upload result to GitHub Code Scanning
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
 
   snyk:
     runs-on: ubuntu-latest
