@@ -1,0 +1,119 @@
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        required: true
+      requirements-file:
+        type: string
+        required: false
+        default: requirements.txt
+    secrets:
+      nuget-token:
+        required: false
+      snyk-token:
+        required: true
+
+name: "Run SAST for Python"
+
+jobs:
+  bandit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Run bandit
+        uses: wayke-se/ci/.github/actions/python/bandit@master
+  
+  pip-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Run pip-audit
+        uses: wayke-se/ci/.github/actions/python/pip-audit@master
+
+  pylint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ inputs.python-version }}
+      
+      - name: Download dependencies
+        run: |
+          pip install -r ${{ inputs.requirements-file }}
+      
+      - name: Run pylint
+        run: |
+          pylint --recursive=y .
+
+  snyk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    container: "snyk/snyk:python"
+
+    env:
+      SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
+      SNYK_INTEGRATION_VERSION: python
+      SNYK_TOKEN: "${{ secrets.snyk-token }}"
+
+    permissions:
+      actions: read
+      contents: read
+      statuses: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download dependencies
+        run: |
+          pip install -r ${{ inputs.requirements-file}}
+      
+      - name: Run Snyk to check for vulnerabilities
+        id: snyktest
+        continue-on-error: true
+        run: |
+          snyk test --sarif-file-output=snyk.test.sarif --severity-threshold=medium
+
+      - name: Upload result to GitHub Code Scanning
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.test.sarif
+
+      - name: Run Snyk to check for code security issues
+        id: snykcode
+        continue-on-error: true
+        run: |
+          snyk code test --sarif-file-output=snyk.code.sarif --severity-threshold=medium
+
+      - name: Upload result to GitHub Code Scanning
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.code.sarif
+
+      - name: Snyk failure - see output of Snyk actions
+        if: steps.snyktest.outcome != 'success' || steps.snykcode.outcome != 'success'
+        run: exit 1

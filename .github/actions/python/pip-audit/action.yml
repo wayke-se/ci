@@ -1,0 +1,5 @@
+name: Python Vulnerability Scanner - pip-audit
+description: pip-audit Dependency SAST scanner for Python
+runs:
+  using: docker
+  image: Dockerfile

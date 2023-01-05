@@ -1,0 +1,5 @@
+name: Python Vulnerability Scanner - Bandit
+description: Bandit Source Code SAST scanner for Python
+runs:
+  using: docker
+  image: Dockerfile
