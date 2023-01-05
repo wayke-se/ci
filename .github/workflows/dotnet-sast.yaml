@@ -61,12 +61,16 @@ jobs:
       - name: Configure NuGet for private packages
         run: |
           [ ! -z "${{ secrets.nuget-token }}" ] && dotnet nuget update source "wayke-gh" --store-password-in-clear-text --configfile NuGet.Config -u "ourbjorn" -p "${{ secrets.nuget-token }}" || true
+
+      - name: Download dependencies
+        run: |
+          dotnet restore
       
       - name: Run Snyk to check for vulnerabilities
         id: snyktest
         continue-on-error: true
         run: |
-          snyk test --all-projects --sarif-file-output=snyk.test.sarif --severity-threshold=medium
+          snyk test --file=$(find . -name '*.sln') --sarif-file-output=snyk.test.sarif --severity-threshold=medium
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
@@ -78,7 +82,7 @@ jobs:
         id: snykcode
         continue-on-error: true
         run: |
-          snyk code test --all-projects --sarif-file-output=snyk.code.sarif --severity-threshold=medium
+          snyk code test --file=$(find . -name '*.sln') --sarif-file-output=snyk.code.sarif --severity-threshold=medium
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
