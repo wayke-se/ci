@@ -10,10 +10,6 @@ on:
       registry-url:
         type: string
         required: true
-      snyk-org:
-        type: string
-        required: false
-        default: "wayke-snyk-pilot-default-organization"
     secrets:
       registry-username:
         required: true
@@ -82,7 +78,7 @@ jobs:
         id: snyktest
         continue-on-error: true
         run: |
-          snyk container test --org "${{ inputs.snyk-org }}" --sarif-file-output=snyk.test.sarif --severity-threshold=medium --file "${{ inputs.dockerfile }}" --docker "${{ inputs.image }}"
+          snyk container test --sarif-file-output=snyk.test.sarif --severity-threshold=medium --file="${{ inputs.dockerfile }}" --docker="${{ inputs.image }}"
 
       - name: Upload result to GitHub Code Scanning
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
