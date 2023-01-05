@@ -2,6 +2,7 @@
 set -euo pipefail
 
 REQUIREMENTS_FILE=""
+CACHE_DIR="/.cache/dir"
 
 while (( "$#" )); do
     case $1 in
@@ -13,4 +14,5 @@ while (( "$#" )); do
     shift || break
 done
 
-pip-audit -l -r ${REQUIREMENTS_FILE}
+mkdir -p "${CACHE_DIR}"
+pip-audit -l --cache-dir "${CACHE_DIR}" -r ${REQUIREMENTS_FILE}
