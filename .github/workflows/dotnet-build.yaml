@@ -65,6 +65,10 @@ jobs:
           secrets: |
             nugettoken=${{ secrets.nuget-token }}
 
+      - name: Uplad Docker image to ${{ inputs.registry-url }}
+        run: |
+          docker push ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+
   scan-docker-image:
     needs:
       - dockerize
