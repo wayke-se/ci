@@ -68,12 +68,28 @@ jobs:
         id: pylint
         continue-on-error: true
         run: |
-          pylint --recursive=y .
-          echo "exitcode=$?" >> $GITHUB_OUTPUT
+          pylint $(git ls-files '*.py') || [ $(($? & 3)) -eq 0 ]
+
+  dlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ inputs.python-version }}
       
-      - name: Validate pylint exitcode
+      - name: Download dependencies
         run: |
-          [ $((${{ steps.pylint.outputs.exitcode }} & 3)) -eq 0 ]
+          pip install -r ${{ inputs.requirements-file }}
+          pip install flake8 dlint
+      
+      - name: Run dlint
+        run: |
+          python -m flake8 --select=DUO .
 
   snyk:
     runs-on: ubuntu-latest
