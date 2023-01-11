@@ -1,0 +1,66 @@
+on:
+  workflow_call:
+    inputs:
+      registry-url:
+        type: string
+        required: true
+      dockerfile:
+        type: string
+        required: false
+        default: "./Dockerfile"
+    secrets:
+      registry-username:
+        required: true
+      registry-password:
+        required: true
+      snyk-token:
+        required: true
+    outputs:
+      image:
+        value: ${{ jobs.dockerize.outputs.image }}
+
+name: "Dockerize Application"
+
+jobs:
+  dockerize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    outputs:
+      image: ${{ github.repository }}:${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Connect to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ inputs.registry-url }}
+          username: ${{ secrets.registry-username }}
+          password: ${{ secrets.registry-password }}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ${{ inputs.dockerfile }}
+          platforms: linux/amd64
+          tags: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+
+      - name: Uplad Docker image to ${{ inputs.registry-url }}
+        run: |
+          docker push ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+
+  scan-docker-image:
+    needs:
+      - dockerize
+
+    uses: ./.github/workflows/docker-sast.yaml
+    with:
+      dockerfile: ${{ inputs.dockerfile }}
+      image: ${{ github.repository }}:${{ github.sha }}
+      registry-url: ${{ inputs.registry-url }}
+    secrets:
+      registry-username: ${{ secrets.registry-username }}
+      registry-password: ${{ secrets.registry-password }}
+      snyk-token: ${{ secrets.snyk-token }}
