@@ -67,29 +67,9 @@ jobs:
           dotnet restore
       
       - name: Run Snyk to check for vulnerabilities
-        id: snyktest
-        continue-on-error: true
         run: |
-          snyk test --file=$(find . -name '*.sln') --sarif-file-output=snyk.test.sarif --severity-threshold=high
-
-      - name: Upload result to GitHub Code Scanning
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk.test.sarif
+          snyk test --file=$(find . -name '*.sln') --severity-threshold=high
 
       - name: Run Snyk to check for code security issues
-        id: snykcode
-        continue-on-error: true
         run: |
-          snyk code test --file=$(find . -name '*.sln') --sarif-file-output=snyk.code.sarif --severity-threshold=high
-
-      - name: Upload result to GitHub Code Scanning
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk.code.sarif
-
-      - name: Snyk failure - see output of Snyk actions
-        if: steps.snyktest.outcome != 'success' || steps.snykcode.outcome != 'success'
-        run: exit 1
+          snyk code test --file=$(find . -name '*.sln') --severity-threshold=high

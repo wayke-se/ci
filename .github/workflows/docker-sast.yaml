@@ -39,14 +39,7 @@ jobs:
         uses: anchore/scan-action@v3
         with:
           image: ${{ inputs.registry-url }}/${{ inputs.image }}
-          output-format: sarif
           severity-cutoff: high
-
-      - name: Upload result to GitHub Code Scanning
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: ${{ steps.scan.outputs.sarif }}
 
   snyk:
     runs-on: ubuntu-latest
@@ -75,17 +68,5 @@ jobs:
           password: ${{ secrets.registry-password }}
       
       - name: Run Snyk to check for vulnerabilities
-        id: snyktest
-        continue-on-error: true
         run: |
-          snyk container test --sarif-file-output=snyk.test.sarif --severity-threshold=medium --file="${{ inputs.dockerfile }}" "${{ inputs.registry-url }}/${{ inputs.image }}"
-
-      - name: Upload result to GitHub Code Scanning
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk.test.sarif
-
-      - name: Snyk failure - see output of Snyk actions
-        if: steps.snyktest.outcome != 'success'
-        run: exit 1
+          snyk container test --severity-threshold=medium --file="${{ inputs.dockerfile }}" "${{ inputs.registry-url }}/${{ inputs.image }}"
