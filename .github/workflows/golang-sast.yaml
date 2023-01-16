@@ -136,29 +136,9 @@ jobs:
           [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
       
       - name: Run Snyk to check for vulnerabilities
-        id: snyktest
-        continue-on-error: true
         run: |
-          snyk test --sarif-file-output=snyk.test.sarif --severity-threshold=high
-
-      - name: Upload result to GitHub Code Scanning
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk.test.sarif
+          snyk test --severity-threshold=high
 
       - name: Run Snyk to check for code security issues
-        id: snykcode
-        continue-on-error: true
         run: |
-          snyk code test --sarif-file-output=snyk.code.sarif --severity-threshold=high
-
-      - name: Upload result to GitHub Code Scanning
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk.code.sarif
-
-      - name: Snyk failure - see output of Snyk actions
-        if: steps.snyktest.outcome != 'success' || steps.snykcode.outcome != 'success'
-        run: exit 1
+          snyk code test --severity-threshold=high
