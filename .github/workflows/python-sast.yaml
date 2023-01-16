@@ -49,9 +49,9 @@ jobs:
         with:
           requirements-file: ${{ inputs.requirements-file }}
 
-  pylint:
+  pre-commit:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
 
     steps:
       - uses: actions/checkout@v3
@@ -64,32 +64,11 @@ jobs:
       - name: Download dependencies
         run: |
           pip install -r ${{ inputs.requirements-file }}
-          pip install pylint
+          pip install pre-commit
       
-      - name: Run pylint
+      - name: Run pre-commit
         run: |
-          pylint $(git ls-files '*.py' | grep -v 'test.py') || [ $(($? & 3)) -eq 0 ]
-
-  dlint:
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ inputs.python-version }}
-      
-      - name: Download dependencies
-        run: |
-          pip install -r ${{ inputs.requirements-file }}
-          pip install flake8 dlint
-      
-      - name: Run dlint
-        run: |
-          python -m flake8 --select=DUO .
+          pre-commit run --show-diff-on-failure --color=always --all-files
 
   snyk:
     runs-on: ubuntu-latest
