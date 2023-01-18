@@ -40,6 +40,7 @@ jobs:
         with:
           image: ${{ inputs.registry-url }}/${{ inputs.image }}
           severity-cutoff: high
+          output-format: table
 
   snyk:
     runs-on: ubuntu-latest
