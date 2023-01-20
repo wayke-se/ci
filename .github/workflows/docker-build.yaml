@@ -47,7 +47,7 @@ jobs:
           platforms: linux/amd64
           tags: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
 
-      - name: Uplad Docker image to ${{ inputs.registry-url }}
+      - name: Upload Docker image to ${{ inputs.registry-url }}
         run: |
           docker push ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
 
