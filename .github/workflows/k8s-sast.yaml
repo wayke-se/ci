@@ -1,8 +1,17 @@
 on:
   workflow_call:
     inputs:
+      cluster:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
       kustomize:
         type: string
+        required: true
+    secrets:
+      credentials:
         required: true
 
 name: "Run SAST for Kubernetes & Kustomize"
@@ -17,7 +26,14 @@ jobs:
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v1
-      
-      - name: Dry run Kustomize templates
+
+      - name: Connect to Azure Kubernetes Service
+        uses: azure/aks-set-context@v1
+        with:
+          creds: ${{ secrets.credentials }}
+          cluster-name: ${{ inputs.cluster }}
+          resource-group: ${{ inputs.environment }}
+
+      - name: Dry run Kustomize
         run: |
           kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
