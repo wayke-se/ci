@@ -68,8 +68,8 @@ jobs:
       
       - name: Run Snyk to check for vulnerabilities
         run: |
-          snyk test --file=$(find . -name '*.sln') --severity-threshold=high
+          snyk test --file=$(find . -name '*.sln') --severity-threshold=high --policy-path=".snyk"
 
       - name: Run Snyk to check for code security issues
         run: |
-          snyk code test --file=$(find . -name '*.sln') --severity-threshold=high
+          snyk code test --file=$(find . -name '*.sln') --severity-threshold=high --policy-path=".snyk"

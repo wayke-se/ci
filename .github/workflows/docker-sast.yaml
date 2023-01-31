@@ -70,4 +70,4 @@ jobs:
       
       - name: Run Snyk to check for vulnerabilities
         run: |
-          snyk container test --severity-threshold=medium --file="${{ inputs.dockerfile }}" "${{ inputs.registry-url }}/${{ inputs.image }}"
+          snyk container test --severity-threshold=medium --file="${{ inputs.dockerfile }}" --policy-path=".snyk" "${{ inputs.registry-url }}/${{ inputs.image }}"
