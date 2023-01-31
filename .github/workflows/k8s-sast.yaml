@@ -1,0 +1,23 @@
+on:
+  workflow_call:
+    inputs:
+      kustomize:
+        type: string
+        required: true
+
+name: "Run SAST for Kubernetes & Kustomize"
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v1
+      
+      - name: Dry run Kustomize templates
+        run: |
+          kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
