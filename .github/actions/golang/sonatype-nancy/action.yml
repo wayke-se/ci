@@ -1,0 +1,5 @@
+name: Go Vulnerability Scanner - Sonatype Nancy
+description: Sonatype Nancy dependency SAST scanner for Go
+runs:
+  using: docker
+  image: Dockerfile
