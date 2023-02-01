@@ -101,16 +101,8 @@ jobs:
         run: |
           go generate ./...
 
-      - name: Collect dependencies
-        run: |
-          go list -json -m all > go.list
-
       - name: Run nancy dependency scanner
-        uses: sonatype-nexus-community/nancy-github-action@main
-        with:
-          nancyVersion: "1.0.42"
-          nancyCommand: "sleuth"
-          goListFile: "go.list"
+        uses: wayke-se/ci/.github/actions/golang/sonatype-nancy@master
 
   govulncheck:
     runs-on: ubuntu-latest
