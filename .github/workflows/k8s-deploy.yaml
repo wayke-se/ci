@@ -50,6 +50,10 @@ jobs:
           cluster-name: ${{ inputs.cluster }}
           resource-group: ${{ inputs.environment }}
 
+      - name: Dry run Kustomize to verify deploy files
+        run: |
+          kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
+
       - name: Deploy to Azure Kubernetes Service
         run: |
           kubectl apply --kustomize ${{ inputs.kustomize }}
