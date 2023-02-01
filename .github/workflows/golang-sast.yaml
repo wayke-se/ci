@@ -107,6 +107,10 @@ jobs:
 
       - name: Run nancy dependency scanner
         uses: sonatype-nexus-community/nancy-github-action@main
+        with:
+          nancyVersion: "1.0.42"
+          nancyCommand: "sleuth"
+          goListFile: "go.list"
 
   govulncheck:
     runs-on: ubuntu-latest
