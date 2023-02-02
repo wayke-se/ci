@@ -6,6 +6,7 @@ RUN apk update && \
         --no-cache \
         --upgrade \
             bash \
+            git \
             curl \
             jq
 
