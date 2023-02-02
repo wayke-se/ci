@@ -100,9 +100,15 @@ jobs:
         if: ${{ inputs.go-generate }}
         run: |
           go generate ./...
+      
+      - name: Populate dependency file
+        run: |
+          go list -json -m all > go.list
 
       - name: Run nancy dependency scanner
         uses: wayke-se/ci/.github/actions/golang/sonatype-nancy@master
+        with:
+          file: go.list
 
   govulncheck:
     runs-on: ubuntu-latest
