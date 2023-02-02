@@ -1,5 +1,13 @@
 name: Go Vulnerability Scanner - Sonatype Nancy
 description: Sonatype Nancy dependency SAST scanner for Go
+inputs:
+  file:
+    description: dependency list file
+    required: false
+    default: requirements.txt
 runs:
   using: docker
   image: Dockerfile
+  args: [
+    "--dep-file", "${{ inputs.file }}"
+  ]
