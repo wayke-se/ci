@@ -1,5 +1,4 @@
 FROM golang:alpine
-WORKDIR /github/workspace
 
 RUN apk update && \
     apk add \
