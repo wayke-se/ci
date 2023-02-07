@@ -11,7 +11,7 @@ on:
 name: "Run SAST for NodeJS"
 
 jobs:
-  package-scan:
+  npm-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 2
 
