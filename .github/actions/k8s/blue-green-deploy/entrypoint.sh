@@ -115,7 +115,7 @@ kubectl apply --kustomize "${KUSTOMIZE}"
 # Watch and await the rollout before continuing
 # with blue/green deployment
 ###
-kubectl rollout status deploy/"${APP-NAME}-${APP_VERSION}" --watch --timeout 10m
+kubectl rollout status deploy/"${APP_NAME}-${APP_VERSION}" --watch --timeout 10m
 
 ###
 # Create a patch file to match the new deployment
