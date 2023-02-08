@@ -86,7 +86,7 @@ export KUBECONFIG="${KUBECTL_CONFIG}"
 ###
 # Store a flag to determine if there's a deployment active
 ###
-RUNNING_VERSION=$(kubectl get deploy -l app=${APP_NAME} -o json | jq -r '.items[0].metadata.name')
+PREVIOUS_VERSION=$(kubectl get deploy -l app=${APP_NAME} -o json | jq -r '.items[0].metadata.name')
 
 ###
 # If there's no existing Service resource, let's create it
@@ -115,11 +115,7 @@ kubectl apply --kustomize "${KUSTOMIZE}"
 # Watch and await the rollout before continuing
 # with blue/green deployment
 ###
-NEXT_VERSION=$(kubectl get deploy -l app=${APP_NAME} -o json | jq -r '.items[1].metadata.name')
-if [ -z "${NEXT_VERSION}" ]; then
-    NEXT_VERSION=$(kubectl get deploy -l app=${APP_NAME} -o json | jq -r '.items[0].metadata.name')
-fi
-kubectl rollout status deploy/"${NEXT_VERSION}" --watch --timeout 10m
+kubectl rollout status deploy/"${APP-NAME}-${APP_VERSION}" --watch --timeout 10m
 
 ###
 # Create a patch file to match the new deployment
@@ -135,12 +131,12 @@ EOF
 # Patch the Service resource with the selector of
 # the newly created deployment
 ###
-kubectl patch svc/"${APP_NAME}" --patch "$(cat "${PATCH_FILE})"
+kubectl patch svc/"${APP_NAME}" --patch "$(cat "${PATCH_FILE}")"
 
 ###
 # If we had an active deployment before this release,
 # clean it up
 ###
-if [ ! -z "${RUNNING_VERSION}" ]; then
-    kubectl delete deploy "${RUNNING_VERSION}"
+if [ ! -z "${PREVIOUS_VERSION}" ]; then
+    kubectl delete deploy "${PREVIOUS_VERSION}"
 fi
