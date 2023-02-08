@@ -9,7 +9,7 @@ SERVICE_FILE=""
 KUSTOMIZE=""
 CREDENTIALS=""
 RESOURCE_GROUP=""
-CLUSTER=""
+CLUSTER_NAME=""
 
 while (( "$#" )); do
     case $1 in
@@ -32,12 +32,14 @@ while (( "$#" )); do
             shift && RESOURCE_GROUP="${1}"
             ;;
         --cluster)
-            shift && CLUSTER="${1}"
+            shift && CLUSTER_NAME="${1}"
             ;;
     esac
 
     shift || break
 done
+
+echo "Starting deploy for ${RESOURCE_GROUP}/${CLUSTER_NAME}..."
 
 ###
 # Expand credentials blob into required variables
@@ -45,8 +47,8 @@ done
 CLIENT_ID=$(echo "${CREDENTIALS}" | jq -r '.clientId')
 CLIENT_SECRET=$(echo "${CREDENTIALS}" | jq -r '.clientSecret')
 TENANT_ID=$(echo "${CREDENTIALS}" | jq -r '.tenantId')
-AUTHORITY=$(echo "${CREDENTIALS}" | jq -r '.activeDirectoryEndpointUrl') || "https://login.microsoftonline.com"
-RESOURCE=$(echo "${CREDENTIALS}" | jq -r '.resourceManagerEndpointUrl') || "https://management.azure.com/"
+AUTHORITY_HOST=$(echo "${CREDENTIALS}" | jq -r '.activeDirectoryEndpointUrl') || "https://login.microsoftonline.com"
+RESOURCE_HOST=$(echo "${CREDENTIALS}" | jq -r '.resourceManagerEndpointUrl') || "https://management.azure.com/"
 SUBSCRIPTION_ID=$(echo "${CREDENTIALS}" | jq -r '.subscriptionId')
 
 ###
@@ -54,12 +56,13 @@ SUBSCRIPTION_ID=$(echo "${CREDENTIALS}" | jq -r '.subscriptionId')
 ###
 ACCESS_TOKEN=$(curl \
     --header "Content-Type: application/x-www-form-urlencoded; charset=utf-8" \
-    --data "resource=${RESOURCE}" \
+    --data "resource=${RESOURCE_HOST}" \
     --data "client_id=${CLIENT_ID}" \
     --data "client_secret=${CLIENT_SECRET}" \
     --data "grant_type=client_credentials" \
+    --silent \
     --fail \
-    "${AUTHORITY}/${TENANT_ID}/oauth2/token/" | jq -r '.access_token')
+    "${AUTHORITY_HOST}/${TENANT_ID}/oauth2/token/" | jq -r '.access_token')
 
 ###
 # Request Kubernetes config blob from Azure
@@ -67,8 +70,9 @@ ACCESS_TOKEN=$(curl \
 KUBECONFIG_DATA=$(curl \
     --header "Authorization: Bearer ${ACCESS_TOKEN}" \
     --header "Content-Type: application/json; charset=utf-8" \
+    --silent \
     --fail \
-    "${RESOURCE}/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.ContainerService/managedClusters/${CLUSTER}/accessProfiles/clusterAdmin?api-version=2017-08-31")
+    "${RESOURCE_HOST}subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.ContainerService/managedClusters/${CLUSTER_NAME}/accessProfiles/clusterAdmin?api-version=2017-08-31")
 
 K8SCFG=""
 PROPERTIES_DATA=$(echo KUBECONFIG_DATA | jq -r '.properties.kubeConfig')
