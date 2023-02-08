@@ -100,7 +100,7 @@ fi
 ###
 # Inject blue/green deploy values into Kubernetes deployment definition
 ###
-WRKDIR=$(dirname "${SERVICE_FILE}")
+WORKDIR=$(dirname "${SERVICE_FILE}")
 pushd $WORKDIR
 kustomize edit set namesuffix -- "-${APP_VERSION}"
 kustomize edit add label "release-tag:${APP_VERSION}"
