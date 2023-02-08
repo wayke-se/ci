@@ -1,0 +1,36 @@
+name: Kubernetes Blue/Green Deploy
+description: Blue/green deploy action for Kubernetes
+inputs:
+  app-name:
+    description: app service name
+    required: true
+  app-version:
+    description: app service version tag
+    required: true
+  service-file:
+    description: path to Kubernetes Service definition
+    required: true
+  kustomize:
+    description: path to Kustomize directory
+    required: true
+  credentials:
+    description: AKS Service Principal credentials blob
+    required: true
+  resource-group:
+    description: AKS Resource Group name
+    required: true
+  cluster:
+    description: AKS Cluster name
+    required: true
+runs:
+  using: docker
+  image: Dockerfile
+  args: [
+    "--app", "${{ inputs.app-name }}",
+    "--app-version", "${{ inputs.app-version }}",
+    "--service-file", "${{ inputs.service-file }}",
+    "--kustomize", "${{ inputs.kustomize }}",
+    "--credentials", "${{ inputs.credentials }}",
+    "--resource-group", "${{ inputs.resource-group }}",
+    "--cluster", "${{ inputs.cluster }}"
+  ]

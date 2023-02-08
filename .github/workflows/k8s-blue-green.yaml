@@ -1,0 +1,59 @@
+on:
+  workflow_call:
+    inputs:
+      service:
+        type: string
+        required: true
+      k8s-service-file:
+        type: string
+        required: true
+      image:
+        type: string
+        required: true
+      cluster:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+      kustomize:
+        type: string
+        required: true
+      watch:
+        type: boolean
+        required: false
+        default: false
+    secrets:
+      credentials:
+        required: true
+
+name: "Blue/green deploy dockerized application"
+
+jobs:
+  deploy-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Prepare deployment files
+        run: |
+          pushd deploy/base
+          kustomize edit set image ${{ inputs.service }}="${{ inputs.image }}"
+          popd
+
+      - name: Dry run Kustomize to verify deploy files
+        run: |
+          kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
+
+      - name: Connect and deploy using blue/green deployment strategy
+        uses: wayke-se/ci/.github/actions/k8s/blue-green-deploy@master
+        with:
+          app-name: ${{ inputs.service }}
+          app-version: ${{ github.sha }}
+          service-file: ${{ inputs.k8s-service-file }}
+          kustomize: ${{ inputs.kustomize }}
+          credentials: ${{ secrets.credentials }}
+          resource-group: ${{ inputs.environment }}
+          cluster-name: ${{ inputs.cluster }}
