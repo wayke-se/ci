@@ -3,7 +3,7 @@ set -euo pipefail
 
 KUBECTL_CONFIG=".kubeconfig"
 KUBECTL_VERSION="1.26.0"
-KUSTOMIZE_VERSION="3.8.1"
+KUSTOMIZE_VERSION="5.0.0"
 
 APP_NAME=""
 APP_VERSION=""
@@ -84,14 +84,14 @@ echo "${K8SCFG}" > "${KUBECTL_CONFIG}"
 export KUBECONFIG="${KUBECTL_CONFIG}"
 
 ###
-# Download kubectl
+# Download & install kubectl
 ###
 curl -sLO https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 mv kubectl /usr/bin/kubectl
 chmod +x /usr/bin/kubectl
 
 ###
-# Download kustomize
+# Download & install kustomize
 ###
 curl -sLO https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz
 tar xvzf kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz && \
