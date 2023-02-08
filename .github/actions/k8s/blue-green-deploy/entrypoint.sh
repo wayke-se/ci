@@ -39,8 +39,6 @@ while (( "$#" )); do
     shift || break
 done
 
-echo "Starting deploy for ${RESOURCE_GROUP}/${CLUSTER_NAME}..."
-
 ###
 # Expand credentials blob into required variables
 ###
@@ -75,7 +73,7 @@ KUBECONFIG_DATA=$(curl \
     "${RESOURCE_HOST}subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP}/providers/Microsoft.ContainerService/managedClusters/${CLUSTER_NAME}/accessProfiles/clusterAdmin?api-version=2017-08-31")
 
 K8SCFG=""
-PROPERTIES_DATA=$(echo KUBECONFIG_DATA | jq -r '.properties.kubeConfig')
+PROPERTIES_DATA=$(echo "${KUBECONFIG_DATA}" | jq -r '.properties.kubeConfig')
 if [ ! -z "${PROPERTIES_DATA}" ]; then
     K8SCFG=$(echo "${PROPERTIES_DATA}" | base64 -d)
 else
