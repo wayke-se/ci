@@ -62,4 +62,4 @@ jobs:
           kustomize: ${{ inputs.kustomize }}
           credentials: ${{ secrets.credentials }}
           resource-group: ${{ inputs.environment }}
-          cluster-name: ${{ inputs.cluster }}
+          cluster: ${{ inputs.cluster }}
