@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine:edge
 
 RUN apk update && \
     apk add \
@@ -7,7 +7,14 @@ RUN apk update && \
             bash \
             curl \
             tar \
-            jq
+            jq \
+            kustomize
+
+RUN apk add \
+        --no-cache \
+        --upgrade \
+        --repository=http://dl-cdn.alpinelinux.org/alpine/edge/testing/ \
+            kubectl
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
