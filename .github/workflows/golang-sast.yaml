@@ -165,10 +165,8 @@ jobs:
       
       - name: Run Snyk to check for vulnerabilities
         run: |
-          GOFLAGS="-buildvcs=false" \
-            snyk test --severity-threshold=high --policy-path=".snyk"
+          GOFLAGS="-buildvcs=false" snyk test --severity-threshold=high --policy-path=".snyk"
       
       - name: Run Snyk to check for code security issues
         run: |
-          GOFLAGS="-buildvcs=false" \
-            snyk code test --severity-threshold=high --policy-path=".snyk"
+          GOFLAGS="-buildvcs=false" snyk code test --severity-threshold=high --policy-path=".snyk"
