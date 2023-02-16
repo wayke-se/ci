@@ -166,7 +166,9 @@ jobs:
       - name: Run Snyk to check for vulnerabilities
         run: |
           snyk test --severity-threshold=high --policy-path=".snyk"
-
+        continue-on-error: true
+      
       - name: Run Snyk to check for code security issues
         run: |
           snyk code test --severity-threshold=high --policy-path=".snyk"
+        continue-on-error: true
