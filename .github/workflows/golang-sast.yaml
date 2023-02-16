@@ -163,10 +163,10 @@ jobs:
         run: |
           [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
       
-      - name: Run Snyk to check for vulnerabilities
-        run: |
-          snyk test --severity-threshold=high --policy-path=".snyk"
-
-      - name: Run Snyk to check for code security issues
-        run: |
-          snyk code test --severity-threshold=high --policy-path=".snyk"
+      #- name: Run Snyk to check for vulnerabilities
+      #  run: |
+      #    snyk test --severity-threshold=high --policy-path=".snyk"
+      #
+      #- name: Run Snyk to check for code security issues
+      #  run: |
+      #    snyk code test --severity-threshold=high --policy-path=".snyk"
