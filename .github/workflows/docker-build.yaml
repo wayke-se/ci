@@ -40,11 +40,13 @@ jobs:
           password: ${{ secrets.registry-password }}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: ${{ inputs.dockerfile }}
           platforms: linux/amd64
+          cache-from: type=registry,ref=wayke-se/${{ github.repository }}:buildcache
+          cache-to: type=registry,ref=wayke-se/${{ github.repository }}:buildcache,mode=max
           tags: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
 
       - name: Upload Docker image to ${{ inputs.registry-url }}
