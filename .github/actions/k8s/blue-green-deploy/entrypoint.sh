@@ -84,6 +84,12 @@ echo "${K8SCFG}" > "${KUBECTL_CONFIG}"
 export KUBECONFIG="${KUBECTL_CONFIG}"
 
 ###
+# Generate a somewhat unique deployment name suffix
+###
+TIMESTAMP=$(date +%s)
+DEPLOYMENT_SUFFIX=$(echo "${APP_VERSION}-${TIMESTAMP}" | sha256sum | head -c 7)
+
+###
 # Store a flag to determine if there's a deployment active
 ###
 PREVIOUS_VERSION=$(kubectl get deploy -l app=${APP_NAME} -o json | jq -r '.items[0].metadata.name')
@@ -102,7 +108,7 @@ fi
 ###
 WORKDIR=$(dirname "${SERVICE_FILE}")
 pushd $WORKDIR
-kustomize edit set namesuffix -- "-${APP_VERSION}"
+kustomize edit set namesuffix -- "-${DEPLOYMENT_SUFFIX}"
 kustomize edit add label "release-tag:${APP_VERSION}"
 popd
 
@@ -115,7 +121,7 @@ kubectl apply --kustomize "${KUSTOMIZE}"
 # Watch and await the rollout before continuing
 # with blue/green deployment
 ###
-kubectl rollout status deploy/"${APP_NAME}-${APP_VERSION}" --watch --timeout 10m
+kubectl rollout status deploy/"${APP_NAME}-${DEPLOYMENT_SUFFIX}" --watch --timeout 10m
 
 ###
 # Create a patch file to match the new deployment
