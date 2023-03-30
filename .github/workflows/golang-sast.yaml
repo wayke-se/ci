@@ -79,6 +79,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
+          skip-cache: true
           args: --config .golangci.yaml --timeout 3m
 
   sonatype-nancy:
