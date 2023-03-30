@@ -73,6 +73,7 @@ jobs:
       
       - name: Verify existence of config file
         run: |
+          test -f .golangci.yml && mv .golangci.yml .golangci.yaml
           test -f .golangci.yaml || echo "run:" > .golangci.yaml
 
       - name: Run golangci-lint
