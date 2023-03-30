@@ -73,8 +73,9 @@ jobs:
 
       - name: Run golangci-lint
         run: |
+          test -f .golangci.yaml || echo "run:" > .golangci.yaml
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.52.2
-          golangci-lint run --verbose --timeout 3m ./...
+          golangci-lint run --config .golangci.yaml --verbose --timeout 3m ./...
 
   sonatype-nancy:
     runs-on: ubuntu-latest
