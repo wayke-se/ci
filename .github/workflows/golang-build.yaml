@@ -4,10 +4,6 @@ on:
       go-version:
         type: string
         required: true
-      go-generate:
-        type: boolean
-        required: false
-        default: false
       registry-url:
         type: string
         required: true
@@ -35,7 +31,6 @@ jobs:
     uses: ./.github/workflows/golang-sast.yaml
     with:
       go-version: ${{ inputs.go-version }}
-      go-generate: ${{ inputs.go-generate }}
     secrets:
       go-token: ${{ secrets.go-token }}
       snyk-token: ${{ secrets.snyk-token }}

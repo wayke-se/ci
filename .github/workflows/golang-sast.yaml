@@ -4,10 +4,6 @@ on:
       go-version:
         type: string
         required: true
-      go-generate:
-        type: boolean
-        required: false
-        default: false
     secrets:
       go-token:
         required: false
@@ -36,11 +32,6 @@ jobs:
       - name: Download dependencies
         run: |
           go mod download
-      
-      - name: Generate code
-        if: ${{ inputs.go-generate }}
-        run: |
-          go generate ./...
 
       - name: Run go-vet
         run: |
@@ -65,11 +56,6 @@ jobs:
       - name: Download dependencies
         run: |
           go mod download
-      
-      - name: Generate code
-        if: ${{ inputs.go-generate }}
-        run: |
-          go generate ./...
       
       - name: Verify existence of config file
         run: |
@@ -103,11 +89,6 @@ jobs:
         run: |
           go mod download
       
-      - name: Generate code
-        if: ${{ inputs.go-generate }}
-        run: |
-          go generate ./...
-      
       - name: Populate dependency file
         run: |
           go list -json -m all > go.list
@@ -136,11 +117,6 @@ jobs:
       - name: Download dependencies
         run: |
           go mod download
-      
-      - name: Generate code
-        if: ${{ inputs.go-generate }}
-        run: |
-          go generate ./...
 
       - name: Run govulncheck
         run: |
