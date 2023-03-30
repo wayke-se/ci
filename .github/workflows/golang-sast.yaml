@@ -75,6 +75,7 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
+          skip-cache: true
 
   sonatype-nancy:
     runs-on: ubuntu-latest
