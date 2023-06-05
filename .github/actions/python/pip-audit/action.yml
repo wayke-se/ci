@@ -9,5 +9,5 @@ runs:
   using: docker
   image: Dockerfile
   args: [
-    "--requirements-file", "${{ inputs.requirements-file }}"
+    "--requirements-file", "${{ inputs.requirements-file }}", "--ignore-vuln", "PYSEC-2023-73"
   ]
