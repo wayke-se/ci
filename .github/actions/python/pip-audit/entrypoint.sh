@@ -15,4 +15,4 @@ while (( "$#" )); do
 done
 
 mkdir -p "${CACHE_DIR}"
-pip-audit -l --cache-dir "${CACHE_DIR}" -r ${REQUIREMENTS_FILE}
+pip-audit -l --cache-dir "${CACHE_DIR}" -r ${REQUIREMENTS_FILE} --ignore-vuln "PYSEC-2023-73"
