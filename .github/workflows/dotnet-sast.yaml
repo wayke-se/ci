@@ -4,11 +4,11 @@ on:
       dotnet-version:
         type: string
         required: true
-      with-snyk-test:
+      snyk-test:
         type: boolean
         required: false
         default: true
-      with-snyk-code:
+      snyk-code:
         type: boolean
         required: false
         default: true
@@ -75,11 +75,11 @@ jobs:
           dotnet restore
       
       - name: Run Snyk to check for vulnerabilities
-        if: ${{ inputs.with-snyk-test }}
+        if: ${{ inputs.snyk-test }}
         run: |
           snyk test --file=$(find . -name '*.sln') --severity-threshold=high --policy-path=".snyk"
 
       - name: Run Snyk to check for code security issues
-        if: ${{ inputs.with-snyk-code }}
+        if: ${{ inputs.snyk-code }}
         run: |
           snyk code test --file=$(find . -name '*.sln') --severity-threshold=high --policy-path=".snyk"

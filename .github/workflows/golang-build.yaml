@@ -11,6 +11,14 @@ on:
         type: string
         required: false
         default: "./Dockerfile"
+      snyk-test:
+        type: boolean
+        required: false
+        default: true
+      snyk-code:
+        type: boolean
+        required: false
+        default: true
     secrets:
       registry-username:
         required: true
@@ -31,6 +39,8 @@ jobs:
     uses: ./.github/workflows/golang-sast.yaml
     with:
       go-version: ${{ inputs.go-version }}
+      snyk-test: ${{ inputs.snyk-test }}
+      snyk-code: ${{ inputs.snyk-code }}
     secrets:
       go-token: ${{ secrets.go-token }}
       snyk-token: ${{ secrets.snyk-token }}
