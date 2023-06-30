@@ -4,6 +4,14 @@ on:
       go-version:
         type: string
         required: true
+      with-snyk-test:
+        type: boolean
+        required: false
+        default: true
+      with-snyk-code:
+        type: boolean
+        required: false
+        default: true
     secrets:
       go-token:
         required: false
@@ -147,9 +155,11 @@ jobs:
           [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
       
       - name: Run Snyk to check for vulnerabilities
+        if: ${{ inputs.with-snyk-test }}
         run: |
           GOFLAGS="-buildvcs=false" snyk test --severity-threshold=high --policy-path=".snyk"
       
       - name: Run Snyk to check for code security issues
+        if: ${{ inputs.with-snyk-code }}
         run: |
           GOFLAGS="-buildvcs=false" snyk code test --severity-threshold=high --policy-path=".snyk"
