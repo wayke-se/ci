@@ -4,6 +4,14 @@ on:
       dotnet-version:
         type: string
         required: true
+      with-snyk-test:
+        type: boolean
+        required: false
+        default: true
+      with-snyk-code:
+        type: boolean
+        required: false
+        default: true
     secrets:
       nuget-token:
         required: false
@@ -67,9 +75,11 @@ jobs:
           dotnet restore
       
       - name: Run Snyk to check for vulnerabilities
+        if: ${{ inputs.with-snyk-test }}
         run: |
           snyk test --file=$(find . -name '*.sln') --severity-threshold=high --policy-path=".snyk"
 
       - name: Run Snyk to check for code security issues
+        if: ${{ inputs.with-snyk-code }}
         run: |
           snyk code test --file=$(find . -name '*.sln') --severity-threshold=high --policy-path=".snyk"
