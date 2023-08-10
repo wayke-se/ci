@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@v3
 
       - name: Prepare deployment files
         run: |
@@ -40,14 +40,18 @@ jobs:
           popd
       
       - name: Install kubectl
-        uses: azure/setup-kubectl@v1
+        uses: azure/setup-kubectl@v3
 
-      - name: Connect to Azure Kubernetes Service
-        uses: azure/aks-set-context@v1
+      - uses: azure/login@v1
         with:
           creds: ${{ secrets.credentials }}
+
+      - name: Connect to Azure Kubernetes Service
+        uses: azure/aks-set-context@v3
+        with:
           cluster-name: ${{ inputs.cluster }}
           resource-group: ${{ inputs.environment }}
+          admin: 'true'
 
       - name: Dry run Kustomize to verify deploy files
         run: |
