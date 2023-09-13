@@ -46,7 +46,6 @@ jobs:
       snyk-token: ${{ secrets.snyk-token }}
 
   dockerize:
-    
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -56,13 +55,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Connect to Azure Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ inputs.registry-url }}
-          username: ${{ secrets.registry-username }}
-          password: ${{ secrets.registry-password }}
-
       - name: Build Docker image
         uses: docker/build-push-action@v4
         with:
@@ -70,16 +62,42 @@ jobs:
           file: ${{ inputs.dockerfile }}
           platforms: linux/amd64
           tags: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+          outputs: type=docker,dest=/tmp/${{ github.repository }}:${{ github.sha }}.tar
           secrets: |
             gotoken=${{ secrets.go-token }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.repository }}:${{ github.sha }}
+          path: /tmp/${{ github.repository }}:${{ github.sha }}.tar
 
-      - name: Upload Docker image to ${{ inputs.registry-url }}
+  push-docker-image:
+    needs: 
+      - scan-code
+      - dockerize
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Connect to Azure Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ inputs.registry-url }}
+          username: ${{ secrets.registry-username }}
+          password: ${{ secrets.registry-password }}
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ github.repository }}:${{ github.sha }}
+          path: /tmp
+      - name: Load 'n push image
         run: |
+          docker load --input /tmp/${{ github.repository }}:${{ github.sha }}.tar
+          docker ${{ github.repository }}:${{ github.sha }} ls -a
           docker push ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
 
   scan-docker-image:
     needs:
-      - dockerize
+      - push-docker-image
 
     uses: ./.github/workflows/docker-sast.yaml
     with:
