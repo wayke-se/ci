@@ -29,7 +29,7 @@ jobs:
   deploy-app:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v3
 
@@ -38,7 +38,7 @@ jobs:
           pushd deploy/base
           kustomize edit set image ${{ inputs.service }}="${{ inputs.image }}"
           popd
-      
+
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
 
@@ -51,7 +51,7 @@ jobs:
         with:
           cluster-name: ${{ inputs.cluster }}
           resource-group: ${{ inputs.environment }}
-          admin: 'true'
+          admin: "true"
 
       - name: Dry run Kustomize to verify deploy files
         run: |
