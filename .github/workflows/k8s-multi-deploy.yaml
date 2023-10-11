@@ -45,6 +45,7 @@ jobs:
           for i in "${IMAGES[@]}"; do
             CONTAINER=$(echo "$i" | cut -d '=' -f1)
             IMAGE=$(echo "$i" | cut -d '=' -f2)
+            echo "Setting $CONTAINER to $IMAGE"
             kustomize edit set image $CONTAINER="$IMAGE"
           done
           popd
