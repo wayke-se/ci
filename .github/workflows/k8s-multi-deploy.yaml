@@ -1,0 +1,74 @@
+on:
+  workflow_call:
+    inputs:
+      service:
+        type: string
+        required: true
+      images:
+        type: string
+        required: false
+        description: 'Comma-separated list of images. E.g., container1=image1,container2=image2'
+      cluster:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+      kustomize:
+        type: string
+        required: true
+      watch:
+        type: boolean
+        required: false
+        default: false
+    secrets:
+      credentials:
+        required: true
+
+name: "Deploy multi-container dockerized application"
+
+jobs:
+  deploy-app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Prepare deployment files
+        run: |
+          pushd deploy/base
+          IFS=',' read -ra IMAGES <<< "${{ inputs.images }}"
+          for i in "${IMAGES[@]}"; do
+            CONTAINER=$(echo "$i" | cut -d '=' -f1)
+            IMAGE=$(echo "$i" | cut -d '=' -f2)
+            kustomize edit set image $CONTAINER="$IMAGE"
+          done
+          popd
+
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.credentials }}
+
+      - name: Connect to Azure Kubernetes Service
+        uses: azure/aks-set-context@v3
+        with:
+          cluster-name: ${{ inputs.cluster }}
+          resource-group: ${{ inputs.environment }}
+          admin: "true"
+
+      - name: Dry run Kustomize to verify deploy files
+        run: |
+          kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
+
+      - name: Deploy to Azure Kubernetes Service
+        run: |
+          kubectl apply --kustomize ${{ inputs.kustomize }}
+
+      - name: Watch rollout
+        if: ${{ inputs.watch }}
+        run: |
+            kubectl rollout status deploy/${{ inputs.service }} --watch

@@ -8,6 +8,14 @@ on:
         type: string
         required: false
         default: "./Dockerfile"
+      context:
+        type: string
+        required: false
+        default: "."
+      image-suffix:
+        type: string
+        required: false
+        default: ""
     secrets:
       registry-username:
         required: true
@@ -27,8 +35,8 @@ jobs:
     timeout-minutes: 20
 
     outputs:
-      image: ${{ github.repository }}:${{ github.sha }}
-
+      image: ${{ github.repository }}${{ inputs.image-suffix }}:${{ github.sha }}
+    
     steps:
       - uses: actions/checkout@v3
 
@@ -42,14 +50,14 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ${{ inputs.context }}
           file: ${{ inputs.dockerfile }}
           platforms: linux/amd64
-          tags: ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+          tags: ${{ inputs.registry-url }}/${{ github.repository }}${{ inputs.image-suffix }}:${{ github.sha }}
 
       - name: Upload Docker image to ${{ inputs.registry-url }}
         run: |
-          docker push ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
+          docker push ${{ inputs.registry-url }}/${{ github.repository }}${{ inputs.image-suffix }}:${{ github.sha }}
 
   scan-docker-image:
     needs:
@@ -58,7 +66,7 @@ jobs:
     uses: ./.github/workflows/docker-sast.yaml
     with:
       dockerfile: ${{ inputs.dockerfile }}
-      image: ${{ github.repository }}:${{ github.sha }}
+      image: ${{ github.repository }}${{ inputs.image-suffix }}:${{ github.sha }}
       registry-url: ${{ inputs.registry-url }}
     secrets:
       registry-username: ${{ secrets.registry-username }}
