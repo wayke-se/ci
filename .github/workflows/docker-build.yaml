@@ -36,7 +36,6 @@ jobs:
 
     outputs:
       image: ${{ github.repository }}${{ inputs.image-suffix }}:${{ github.sha }}
-    
     steps:
       - uses: actions/checkout@v3
 
