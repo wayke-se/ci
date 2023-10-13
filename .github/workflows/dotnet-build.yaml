@@ -61,7 +61,7 @@ jobs:
     timeout-minutes: 20
 
     outputs:
-      image: ${{ inputs.image-name }}:${{ github.sha }}
+      image: ${{ inputs.image-name || github.repository }}:${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v3
@@ -79,13 +79,13 @@ jobs:
           context: ${{ inputs.context }}
           file: ${{ inputs.dockerfile }}
           platforms: linux/amd64
-          tags: ${{ inputs.registry-url }}/$${{ inputs.image-name }}:${{ github.sha }}
+          tags: ${{ inputs.registry-url }}/$${{ inputs.image-name || github.repository }}:${{ github.sha }}
           secrets: |
             nugettoken=${{ secrets.nuget-token }}
 
       - name: Upload Docker image to ${{ inputs.registry-url }}
         run: |
-          docker push ${{ inputs.registry-url }}/$${{ inputs.image-name }}:${{ github.sha }}
+          docker push ${{ inputs.registry-url }}/$${{ inputs.image-name || github.repository }}:${{ github.sha }}
 
   scan-docker-image:
     needs:
@@ -94,7 +94,7 @@ jobs:
     uses: ./.github/workflows/docker-sast.yaml
     with:
       dockerfile: ${{ inputs.dockerfile }}
-      image: $${{ inputs.image-name }}:${{ github.sha }}
+      image: $${{ inputs.image-name || github.repository }}:${{ github.sha }}
       registry-url: ${{ inputs.registry-url }}
     secrets:
       registry-username: ${{ secrets.registry-username }}
