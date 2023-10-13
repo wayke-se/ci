@@ -12,7 +12,7 @@ on:
         type: string
         required: false
         default: "."
-      image-suffix:
+      image-name:
         type: string
         required: false
         default: ""
@@ -35,7 +35,7 @@ jobs:
     timeout-minutes: 20
 
     outputs:
-      image: ${{ github.repository }}${{ inputs.image-suffix }}:${{ github.sha }}
+      image: ${{ inputs.image-name }}:${{ github.sha }}
     steps:
       - uses: actions/checkout@v3
 
@@ -52,11 +52,11 @@ jobs:
           context: ${{ inputs.context }}
           file: ${{ inputs.dockerfile }}
           platforms: linux/amd64
-          tags: ${{ inputs.registry-url }}/${{ github.repository }}${{ inputs.image-suffix }}:${{ github.sha }}
+          tags: ${{ inputs.registry-url }}/${{ inputs.image-name }}:${{ github.sha }}
 
       - name: Upload Docker image to ${{ inputs.registry-url }}
         run: |
-          docker push ${{ inputs.registry-url }}/${{ github.repository }}${{ inputs.image-suffix }}:${{ github.sha }}
+          docker push ${{ inputs.registry-url }}/${{ inputs.image-name }}:${{ github.sha }}
 
   scan-docker-image:
     needs:
@@ -65,7 +65,7 @@ jobs:
     uses: ./.github/workflows/docker-sast.yaml
     with:
       dockerfile: ${{ inputs.dockerfile }}
-      image: ${{ github.repository }}${{ inputs.image-suffix }}:${{ github.sha }}
+      image: ${{ inputs.image-name }}:${{ github.sha }}
       registry-url: ${{ inputs.registry-url }}
     secrets:
       registry-username: ${{ secrets.registry-username }}
