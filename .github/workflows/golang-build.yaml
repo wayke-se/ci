@@ -92,7 +92,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      
+    - name: Connect to Azure Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ inputs.registry-url }}
+        username: ${{ secrets.registry-username }}
+        password: ${{ secrets.registry-password }}
     - name: Download artifact
       uses: actions/download-artifact@v3
       with:
