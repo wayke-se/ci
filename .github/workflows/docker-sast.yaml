@@ -11,10 +11,6 @@ on:
         type: string
         required: true
     secrets:
-      registry-username:
-        required: true
-      registry-password:
-        required: true
       snyk-token:
         required: true
 
@@ -27,14 +23,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Connect to Azure Container Registry
-        uses: docker/login-action@v2
+      - name: Download artifact
+        uses: actions/download-artifact@v3
         with:
-          registry: ${{ inputs.registry-url }}
-          username: ${{ secrets.registry-username }}
-          password: ${{ secrets.registry-password }}
-      
+          name: ${{ inputs.image }}
+          path: /tmp
+      - name: Load image
+        run: |
+          docker load --input /tmp/${{ inputs.image }}.tar
+
       - name: Run Grype to check Docker image for vulnerabilities
         uses: anchore/scan-action@v3
         with:
@@ -61,12 +58,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Connect to Azure Container Registry
-        uses: docker/login-action@v2
+      - name: Download artifact
+        uses: actions/download-artifact@v3
         with:
-          registry: ${{ inputs.registry-url }}
-          username: ${{ secrets.registry-username }}
-          password: ${{ secrets.registry-password }}
+          name: ${{ inputs.image }}
+          path: /tmp
+      - name: Load image
+        run: |
+          docker load --input /tmp/${{ inputs.image }}.tar
       
       - name: Run Snyk to check for vulnerabilities
         run: |
