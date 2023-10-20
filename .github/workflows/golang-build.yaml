@@ -84,7 +84,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.image-name || github.repository }}:${{ github.sha }}
+          name: ${{ github.sha }}
           path: /tmp/${{ github.sha }}.tar
 
   push-docker-image:
