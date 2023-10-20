@@ -64,11 +64,11 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: ${{ inputs.image }}
+          name: ${{ github.sha }}
           path: /tmp
       - name: Load image
         run: |
-          docker load --input /tmp/${{ inputs.image }}.tar
+          docker load --input /tmp/${{ github.sha }}.tar
       
       - name: Run Snyk to check for vulnerabilities
         run: |

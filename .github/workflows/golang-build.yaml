@@ -78,14 +78,14 @@ jobs:
           file: ${{ inputs.dockerfile }}
           platforms: linux/amd64
           tags: ${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:${{ github.sha }}
-          outputs: type=docker,dest=/tmp/${{ inputs.image-name || github.repository }}:${{ github.sha }}.tar
+          outputs: type=docker,dest=/tmp/${{ github.sha }}.tar
           secrets: |
             gotoken=${{ secrets.go-token }}
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.image-name || github.repository }}:${{ github.sha }}
-          path: /tmp/${{ inputs.image-name || github.repository }}:${{ github.sha }}.tar
+          path: /tmp/${{ github.sha }}.tar
 
   push-docker-image:
     needs: scan-docker-image
@@ -96,13 +96,13 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v3
       with:
-        name: ${{ inputs.image-name || github.repository }}:${{ github.sha }}
+        name: ${{ github.sha }}
         path: /tmp
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     - name: Load image
       run: |
-        docker load --input /tmp/${{ inputs.image-name || github.repository }}:${{ github.sha }}.tar
+        docker load --input /tmp/${{ github.sha }}.tar
     - name: Upload Docker image to ${{ inputs.registry-url }}
       run: |
         docker push ${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:${{ github.sha }}
