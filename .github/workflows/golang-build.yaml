@@ -78,6 +78,7 @@ jobs:
           file: ${{ inputs.dockerfile }}
           platforms: linux/amd64
           tags: ${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:${{ github.sha }}
+          outputs: type=docker,dest=/tmp/${{ inputs.image-name || github.repository }}:${{ github.sha }}.tar
           secrets: |
             gotoken=${{ secrets.go-token }}
       - name: Upload artifact
