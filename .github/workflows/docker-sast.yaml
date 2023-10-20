@@ -32,7 +32,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Load image
         run: |
-          docker load --input /tmp/${{ inputs.image }}.tar
+          docker load --input /tmp/${{ github.sha }}.tar
 
       - name: Run Grype to check Docker image for vulnerabilities
         uses: anchore/scan-action@v3
