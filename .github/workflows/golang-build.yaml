@@ -38,7 +38,7 @@ on:
         required: true
     outputs:
       image:
-        value: ${{ jobs.dockerize.outputs.image }}
+        value: ${{ jobs.build-docker-image.outputs.image }}
 
 name: "Dockerize Go Application"
 
@@ -53,10 +53,7 @@ jobs:
       go-token: ${{ secrets.go-token }}
       snyk-token: ${{ secrets.snyk-token }}
 
-  dockerize:
-    needs:
-      - scan-code
-    
+  build-docker-image:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -83,13 +80,21 @@ jobs:
           secrets: |
             gotoken=${{ secrets.go-token }}
 
+  push-docker-image:
+    needs:
+      - scan-code
+      - build-docker-image
+
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Upload Docker image to ${{ inputs.registry-url }}
         run: |
           docker push ${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:${{ github.sha }}
 
   scan-docker-image:
     needs:
-      - dockerize
+      - push-docker-image
 
     uses: ./.github/workflows/docker-sast.yaml
     with:
