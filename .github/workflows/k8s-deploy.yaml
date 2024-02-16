@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install kubectl
-        uses: azure/setup-kubectl@v4
+        uses: azure/setup-kubectl@v3
 
       - name: Prepare deployment files
         run: |
