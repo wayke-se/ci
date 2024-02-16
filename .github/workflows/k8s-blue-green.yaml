@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 10
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Prepare deployment files
         run: |
@@ -40,7 +40,7 @@ jobs:
           popd
 
       - name: Install kubectl
-        uses: azure/setup-kubectl@v3
+        uses: azure/setup-kubectl@v4
 
       - uses: azure/login@v1
         with:
