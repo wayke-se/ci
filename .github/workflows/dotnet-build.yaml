@@ -38,7 +38,7 @@ on:
         required: true
     outputs:
       image:
-        value: ${{ jobs.dockerize.outputs.image }}
+        value: ${{ jobs.build-docker-image.outputs.image }}
 
 name: "Dockerize .NET Application"
 
