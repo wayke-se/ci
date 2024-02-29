@@ -54,9 +54,6 @@ jobs:
       snyk-token: ${{ secrets.snyk-token }}
 
   dockerize:
-    needs:
-      - scan-code
-    
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -89,6 +86,7 @@ jobs:
 
   scan-docker-image:
     needs:
+      - scan-code
       - dockerize
 
     uses: ./.github/workflows/docker-sast.yaml
