@@ -20,6 +20,9 @@ on:
         type: boolean
         required: false
         default: false
+      sentry-config-map:
+        type: string
+        required: false
     secrets:
       credentials:
         required: true
@@ -41,6 +44,13 @@ jobs:
         run: |
           pushd deploy/base
           kustomize edit set image ${{ inputs.service }}="${{ inputs.image }}"
+          popd
+
+      - name: Set SENTRY_RELEASE variable
+        if: inputs.sentry-config-map
+        run: |
+          pushd ${{ inputs.kustomize }}
+          kustomize edit add patch --kind ConfigMap --name ${{ inputs.sentry-config-map }} --patch "[{\"op\": \"replace\", \"path\": \"/data/SENTRY_RELEASE\", \"value\": \"${{ github.sha }}\"}]"
           popd
 
       - uses: azure/login@v1
