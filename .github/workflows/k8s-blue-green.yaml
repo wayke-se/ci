@@ -31,7 +31,7 @@ jobs:
     timeout-minutes: 10
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Prepare deployment files
         run: |
