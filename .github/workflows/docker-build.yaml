@@ -16,6 +16,10 @@ on:
         type: string
         required: false
         default: ""
+      runner-group:
+        required: false
+        type: string
+        default: 'ubuntu-latest'
     secrets:
       registry-username:
         required: true
@@ -31,7 +35,7 @@ name: "Dockerize Application"
 
 jobs:
   dockerize:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner-group }}
     timeout-minutes: 20
 
     outputs:

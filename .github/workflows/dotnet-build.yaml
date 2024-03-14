@@ -27,6 +27,10 @@ on:
         type: string
         required: false
         default: ""
+      runner-group:
+        required: false
+        type: string
+        default: 'ubuntu-latest'
     secrets:
       registry-username:
         required: true
@@ -49,12 +53,13 @@ jobs:
       dotnet-version: ${{ inputs.dotnet-version }}
       snyk-test: ${{ inputs.snyk-test }}
       snyk-code: ${{ inputs.snyk-code }}
+      runner-group: ${{ inputs.runner-group }}
     secrets:
       nuget-token: ${{ secrets.nuget-token }}
       snyk-token: ${{ secrets.snyk-token }}
 
-  build-docker-image:    
-    runs-on: ubuntu-latest
+  build-docker-image:
+    runs-on: ${{ inputs.runner-group }}
     timeout-minutes: 20
 
     outputs:

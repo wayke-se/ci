@@ -12,6 +12,10 @@ on:
         type: boolean
         required: false
         default: true
+      runner-group:
+        required: false
+        type: string
+        default: 'ubuntu-latest'
     secrets:
       nuget-token:
         required: false
@@ -22,7 +26,7 @@ name: "Run SAST for .NET"
 
 jobs:
   package-scan:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner-group }}
     timeout-minutes: 2
 
     steps:

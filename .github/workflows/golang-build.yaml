@@ -27,6 +27,10 @@ on:
         type: string
         required: false
         default: ""
+      runner-group:
+        required: false
+        type: string
+        default: 'ubuntu-latest'
     secrets:
       registry-username:
         required: true
@@ -54,7 +58,7 @@ jobs:
       snyk-token: ${{ secrets.snyk-token }}
 
   build-docker-image:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner-group }}
     timeout-minutes: 20
 
     outputs:
