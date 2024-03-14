@@ -4,6 +4,9 @@ on:
       environment:
         required: true
         type: string
+      projects:
+        required: false
+        type: string
     secrets:
       auth-token:
         required: true
@@ -27,3 +30,4 @@ jobs:
           SENTRY_PROJECT: ${{ github.event.repository.name }}
         with:
           environment: ${{ inputs.environment }}
+          projects: ${{ inputs.projects }}
