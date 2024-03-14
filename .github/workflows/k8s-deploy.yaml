@@ -20,6 +20,9 @@ on:
         type: boolean
         required: false
         default: false
+      sentry-config-map:
+        type: string
+        required: false
     secrets:
       credentials:
         required: true
@@ -32,7 +35,7 @@ jobs:
     timeout-minutes: 10
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
@@ -41,6 +44,16 @@ jobs:
         run: |
           pushd deploy/base
           kustomize edit set image ${{ inputs.service }}="${{ inputs.image }}"
+          popd
+
+      - name: Set Sentry environment variables
+        if: inputs.sentry-config-map
+        run: |
+          pushd ${{ inputs.kustomize }}
+          kustomize edit add patch --kind ConfigMap --name ${{ inputs.sentry-config-map }} --patch "[\
+              {\"op\": \"add\", \"path\": \"/data/SENTRY_RELEASE\", \"value\": \"${{ github.sha }}\"},\
+              {\"op\": \"add\", \"path\": \"/data/SENTRY_ENVIRONMENT\", \"value\": \"${{ inputs.environment }}\"}\
+            ]"
           popd
 
       - uses: azure/login@v1

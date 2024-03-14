@@ -61,7 +61,7 @@ jobs:
       image: ${{ inputs.image-name || github.repository }}:${{ github.sha }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
