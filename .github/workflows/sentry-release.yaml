@@ -27,7 +27,6 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.auth-token }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ github.event.repository.name }}
         with:
           environment: ${{ inputs.environment }}
-          projects: ${{ inputs.projects }}
+          projects: ${{ inputs.projects || github.event.repository.name }}
