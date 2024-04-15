@@ -76,10 +76,11 @@ jobs:
             gotoken=${{ secrets.go-token }}
           outputs: type=docker,dest=/tmp/image.tar
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: image
           path: /tmp/image.tar
+          retention-days: 1
 
   push-docker-image:
     needs:
