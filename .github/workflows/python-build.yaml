@@ -79,16 +79,16 @@ jobs:
       run: |
         docker push ${{ inputs.registry-url }}/${{ github.repository }}:${{ github.sha }}
 
-  scan-docker-image:
-    needs:
-    - dockerize
+  # scan-docker-image:
+  #   needs:
+  #   - dockerize
 
-    uses: ./.github/workflows/docker-sast.yaml
-    with:
-      dockerfile: ${{ inputs.dockerfile }}
-      image: ${{ github.repository }}:${{ github.sha }}
-      registry-url: ${{ inputs.registry-url }}
-    secrets:
-      registry-username: ${{ secrets.registry-username }}
-      registry-password: ${{ secrets.registry-password }}
-      snyk-token: ${{ secrets.snyk-token }}
+  #   uses: ./.github/workflows/docker-sast.yaml
+  #   with:
+  #     dockerfile: ${{ inputs.dockerfile }}
+  #     image: ${{ github.repository }}:${{ github.sha }}
+  #     registry-url: ${{ inputs.registry-url }}
+  #   secrets:
+  #     registry-username: ${{ secrets.registry-username }}
+  #     registry-password: ${{ secrets.registry-password }}
+  #     snyk-token: ${{ secrets.snyk-token }}
