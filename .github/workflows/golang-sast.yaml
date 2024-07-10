@@ -23,114 +23,114 @@ name: "Run SAST for Go"
 jobs:
   go-vet:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ inputs.go-version }}
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.go-version }}
 
-      - name: Configure git for private modules
-        run: |
-          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
+    - name: Configure git for private modules
+      run: |
+        [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
 
-      - name: Download dependencies
-        run: |
-          go mod download
+    - name: Download dependencies
+      run: |
+        go mod download
 
-      - name: Run go-vet
-        run: |
-          go vet ./...
+    - name: Run go-vet
+      run: |
+        go vet ./...
 
   golangci-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ inputs.go-version }}
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.go-version }}
 
-      - name: Configure git for private modules
-        run: |
-          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
+    - name: Configure git for private modules
+      run: |
+        [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
 
-      - name: Download dependencies
-        run: |
-          go mod download
-      
-      - name: Verify existence of config file
-        run: |
-          test -f .golangci.yml && mv .golangci.yml .golangci.yaml
-          test -f .golangci.yaml || echo "run:" > .golangci.yaml
+    - name: Download dependencies
+      run: |
+        go mod download
 
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
-          skip-cache: true
-          args: --config .golangci.yaml --timeout 3m
+    - name: Verify existence of config file
+      run: |
+        test -f .golangci.yml && mv .golangci.yml .golangci.yaml
+        test -f .golangci.yaml || echo "run:" > .golangci.yaml
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+        skip-cache: true
+        args: --config .golangci.yaml --timeout 3m
 
   sonatype-nancy:
     runs-on: ubuntu-latest
     timeout-minutes: 2
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ inputs.go-version }}
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.go-version }}
 
-      - name: Configure git for private modules
-        run: |
-          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
+    - name: Configure git for private modules
+      run: |
+        [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
 
-      - name: Download dependencies
-        run: |
-          go mod download
-      
-      - name: Populate dependency file
-        run: |
-          go list -json -m all > go.list
+    - name: Download dependencies
+      run: |
+        go mod download
 
-      - name: Run nancy dependency scanner
-        uses: wayke-se/ci/.github/actions/golang/sonatype-nancy@master
-        with:
-          file: go.list
+    - name: Populate dependency file
+      run: |
+        go list -json -m all > go.list
+
+    - name: Run nancy dependency scanner
+      uses: wayke-se/ci/.github/actions/golang/sonatype-nancy@master
+      with:
+        file: go.list
 
   govulncheck:
     runs-on: ubuntu-latest
     timeout-minutes: 2
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: ${{ inputs.go-version }}
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.go-version }}
 
-      - name: Configure git for private modules
-        run: |
-          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
+    - name: Configure git for private modules
+      run: |
+        [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
 
-      - name: Download dependencies
-        run: |
-          go mod download
+    - name: Download dependencies
+      run: |
+        go mod download
 
-      - name: Run govulncheck
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
-  
+    - name: Run govulncheck
+      run: |
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        govulncheck ./...
+
   snyk:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -148,18 +148,18 @@ jobs:
       security-events: write
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Configure git for private modules
-        run: |
-          [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
-      
-      - name: Run Snyk to check for vulnerabilities
-        if: ${{ inputs.snyk-test }}
-        run: |
-          GOFLAGS="-buildvcs=false" snyk test --severity-threshold=high --policy-path=".snyk"
-      
-      - name: Run Snyk to check for code security issues
-        if: ${{ inputs.snyk-code }}
-        run: |
-          GOFLAGS="-buildvcs=false" snyk code test --severity-threshold=high --policy-path=".snyk"
+    - name: Configure git for private modules
+      run: |
+        [ ! -z "${{ secrets.go-token }}" ] && git config --global url."https://${{ secrets.go-token }}@github.com".insteadOf "https://github.com" || true
+
+    - name: Run Snyk to check for vulnerabilities
+      if: ${{ inputs.snyk-test }}
+      run: |
+        GOFLAGS="-buildvcs=false" snyk test --severity-threshold=high --policy-path=".snyk"
+
+    - name: Run Snyk to check for code security issues
+      if: ${{ inputs.snyk-code }}
+      run: |
+        GOFLAGS="-buildvcs=false" snyk code test --severity-threshold=high --policy-path=".snyk"
