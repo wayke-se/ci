@@ -51,7 +51,8 @@ jobs:
       go-token: ${{ secrets.go-token }}
 
   build-docker-image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-8cpu
+      
     timeout-minutes: 20
 
     outputs:
