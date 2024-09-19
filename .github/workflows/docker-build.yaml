@@ -47,12 +47,14 @@ jobs:
         password: ${{ secrets.registry-password }}
 
     - name: Build Docker image
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v6
       with:
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
         platforms: linux/amd64
         tags: ${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:${{ github.sha }}
+        cache-from: type=registry,ref=${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:buildcache
+        cache-to: type=registry,ref=${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:buildcache,mode=max
 
     - name: Upload Docker image to ${{ inputs.registry-url }}
       run: |

@@ -74,6 +74,8 @@ jobs:
         tags: ${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:${{ github.sha }}
         secrets: |
           gotoken=${{ secrets.go-token }}
+        cache-from: type=registry,ref=${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:buildcache
+        cache-to: type=registry,ref=${{ inputs.registry-url }}/${{ inputs.image-name || github.repository }}:buildcache,mode=max
         outputs: type=docker,dest=/tmp/image.tar
     - name: Upload artifact
       uses: actions/upload-artifact@v4
