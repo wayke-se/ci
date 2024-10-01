@@ -22,7 +22,7 @@ name: "Run SAST for Go"
 
 jobs:
   go-vet:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-8cpu
     timeout-minutes: 5
 
     steps:
@@ -46,7 +46,7 @@ jobs:
         go vet ./...
 
   golangci-lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-cpu
     timeout-minutes: 5
 
     steps:
@@ -75,7 +75,7 @@ jobs:
       with:
         version: latest
         skip-cache: true
-        args: --config .golangci.yaml --timeout 3m
+        args: --config .golangci.yaml --timeout 3m --verbose
 
   sonatype-nancy:
     runs-on: ubuntu-latest
