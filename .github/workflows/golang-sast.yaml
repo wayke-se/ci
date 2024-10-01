@@ -46,7 +46,7 @@ jobs:
         go vet ./...
 
   golangci-lint:
-    runs-on: ubuntu-cpu
+    runs-on: ubuntu-8cpu
     timeout-minutes: 5
 
     steps:
@@ -71,7 +71,7 @@ jobs:
         test -f .golangci.yaml || echo "run:" > .golangci.yaml
 
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v6
       with:
         version: latest
         skip-cache: true
