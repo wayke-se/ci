@@ -16,8 +16,8 @@ on:
       registry-password:
         required: true
       snyk-token:
-        required: true
-
+        required: false
+          
 name: "Run SAST for Docker image"
 
 jobs:
@@ -36,38 +36,14 @@ jobs:
         password: ${{ secrets.registry-password }}
 
     - name: Run Grype to check Docker image for vulnerabilities
+      id: grype_scan
       uses: anchore/scan-action@v3
       with:
         image: ${{ inputs.registry-url }}/${{ inputs.image }}
         severity-cutoff: high
-        output-format: table
+        output-format: sarif
 
-  snyk:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    container: "snyk/snyk:docker"
-
-    env:
-      SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
-      SNYK_INTEGRATION_VERSION: docker
-      SNYK_TOKEN: "${{ secrets.snyk-token }}"
-
-    permissions:
-      actions: read
-      contents: read
-      statuses: read
-      security-events: write
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Connect to Azure Container Registry
-      uses: docker/login-action@v3
+    - name: upload Anchore scan SARIF report
+      uses: github/codeql-action/upload-sarif@v2
       with:
-        registry: ${{ inputs.registry-url }}
-        username: ${{ secrets.registry-username }}
-        password: ${{ secrets.registry-password }}
-
-    - name: Run Snyk to check for vulnerabilities
-      run: |
-        snyk container test --severity-threshold=medium --file="${{ inputs.dockerfile }}" --policy-path=".snyk" "${{ inputs.registry-url }}/${{ inputs.image }}"
+        sarif_file: ${{ steps.grype_scan.outputs.sarif }}

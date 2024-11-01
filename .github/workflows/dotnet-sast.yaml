@@ -7,16 +7,16 @@ on:
       snyk-test:
         type: boolean
         required: false
-        default: true
+        default: false
       snyk-code:
         type: boolean
         required: false
-        default: true
+        default: false
     secrets:
       nuget-token:
         required: false
       snyk-token:
-        required: true
+        required: false
 
 name: "Run SAST for .NET"
 
@@ -46,40 +46,3 @@ jobs:
           RESULT=$(dotnet list package --vulnerable --include-transitive)
           echo "${RESULT}"
           test $(echo "${RESULT}" | grep -cm 1 "following vulnerable packages") -ne 1
-
-  snyk:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    container: "snyk/snyk:dotnet"
-
-    env:
-      SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
-      SNYK_INTEGRATION_VERSION: dotnet
-      SNYK_TOKEN: "${{ secrets.snyk-token }}"
-
-    permissions:
-      actions: read
-      contents: read
-      statuses: read
-      security-events: write
-
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Configure NuGet for private packages
-        run: |
-          [ ! -z "${{ secrets.nuget-token }}" ] && dotnet nuget update source "wayke-gh" --store-password-in-clear-text --configfile NuGet.Config -u "ourbjorn" -p "${{ secrets.nuget-token }}" || true
-
-      - name: Download dependencies
-        run: |
-          dotnet restore
-      
-      - name: Run Snyk to check for vulnerabilities
-        if: ${{ inputs.snyk-test }}
-        run: |
-          snyk test --file=$(find . -name '*.sln') --severity-threshold=high --policy-path=".snyk"
-
-      - name: Run Snyk to check for code security issues
-        if: ${{ inputs.snyk-code }}
-        run: |
-          snyk code test --file=$(find . -name '*.sln') --severity-threshold=high --policy-path=".snyk"

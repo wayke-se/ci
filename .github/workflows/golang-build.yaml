@@ -14,11 +14,11 @@ on:
       snyk-test:
         type: boolean
         required: false
-        default: true
+        default: false
       snyk-code:
         type: boolean
         required: false
-        default: true
+        default: false
       context:
         type: string
         required: false
@@ -35,7 +35,7 @@ on:
       go-token:
         required: false
       snyk-token:
-        required: true
+        required: false
     outputs:
       image:
         value: ${{ jobs.build-docker-image.outputs.image }}
@@ -47,11 +47,8 @@ jobs:
     uses: ./.github/workflows/golang-sast.yaml
     with:
       go-version: ${{ inputs.go-version }}
-      snyk-test: ${{ inputs.snyk-test }}
-      snyk-code: ${{ inputs.snyk-code }}
     secrets:
       go-token: ${{ secrets.go-token }}
-      snyk-token: ${{ secrets.snyk-token }}
 
   build-docker-image:
     runs-on: ubuntu-latest
@@ -120,4 +117,3 @@ jobs:
     secrets:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
-      snyk-token: ${{ secrets.snyk-token }}

@@ -22,7 +22,7 @@ on:
       registry-password:
         required: true
       snyk-token:
-        required: true
+        required: false
     outputs:
       image:
         value: ${{ jobs.dockerize.outputs.image }}
@@ -70,4 +70,3 @@ jobs:
     secrets:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
-      snyk-token: ${{ secrets.snyk-token }}
