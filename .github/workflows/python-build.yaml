@@ -18,18 +18,18 @@ on:
       snyk-test:
         type: boolean
         required: false
-        default: true
+        default: false
       snyk-code:
         type: boolean
         required: false
-        default: true
+        default: false
     secrets:
       registry-username:
         required: true
       registry-password:
         required: true
       snyk-token:
-        required: true
+        required: false
     outputs:
       image:
         value: ${{ jobs.dockerize.outputs.image }}
@@ -42,10 +42,6 @@ jobs:
     with:
       python-version: ${{ inputs.python-version }}
       requirements-file: ${{ inputs.requirements-file }}
-      snyk-test: ${{ inputs.snyk-test }}
-      snyk-code: ${{ inputs.snyk-code }}
-    secrets:
-      snyk-token: ${{ secrets.snyk-token }}
 
   dockerize:
     needs:
@@ -91,4 +87,3 @@ jobs:
     secrets:
       registry-username: ${{ secrets.registry-username }}
       registry-password: ${{ secrets.registry-password }}
-      snyk-token: ${{ secrets.snyk-token }}

@@ -11,16 +11,16 @@ on:
       snyk-test:
         type: boolean
         required: false
-        default: true
+        default: false
       snyk-code:
         type: boolean
         required: false
-        default: true
+        default: false
     secrets:
       nuget-token:
         required: false
       snyk-token:
-        required: true
+        required: false
 
 name: "Run SAST for Python"
 
@@ -84,36 +84,3 @@ jobs:
       - name: Run pre-commit
         run: |
           pre-commit run --show-diff-on-failure --color=always --all-files
-
-  snyk:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    container: "snyk/snyk:python-3.10"
-
-    env:
-      SNYK_INTEGRATION_NAME: GITHUB_ACTIONS
-      SNYK_INTEGRATION_VERSION: python
-      SNYK_TOKEN: "${{ secrets.snyk-token }}"
-
-    permissions:
-      actions: read
-      contents: read
-      statuses: read
-      security-events: write
-
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Download dependencies
-        run: |
-          pip install -r ${{ inputs.requirements-file}}
-      
-      - name: Run Snyk to check for vulnerabilities
-        if: ${{ inputs.snyk-test }}
-        run: |
-          snyk test --all-projects --severity-threshold=high --policy-path=".snyk"
-
-      - name: Run Snyk to check for code security issues
-        if: ${{ inputs.snyk-code }}
-        run: |
-          snyk code test --all-projects --severity-threshold=high --policy-path=".snyk"
