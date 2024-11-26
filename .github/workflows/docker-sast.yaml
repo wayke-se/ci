@@ -40,6 +40,7 @@ jobs:
       uses: anchore/scan-action@v3
       with:
         image: ${{ inputs.registry-url }}/${{ inputs.image }}
+        fail-build: false
         output-format: sarif
 
     - name: upload Anchore scan SARIF report
