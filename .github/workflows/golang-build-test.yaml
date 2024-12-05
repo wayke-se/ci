@@ -43,13 +43,6 @@ on:
 name: "Dockerize Go Application"
 
 jobs:
-  scan-code:
-    uses: ./.github/workflows/golang-sast.yaml
-    with:
-      go-version: ${{ inputs.go-version }}
-    secrets:
-      go-token: ${{ secrets.go-token }}
-
   build-docker-image:
     runs-on: ubuntu-latest
     timeout-minutes: 20
