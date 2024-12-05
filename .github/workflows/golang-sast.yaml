@@ -158,12 +158,12 @@ jobs:
         go-version-input: ${{ inputs.go-version }}
         check-latest: true
         output-format: sarif
-        output-file: results.sarif
+        output-file: govulncheck.sarif
 
     - name: upload govulncheck scan SARIF report
       uses: github/codeql-action/upload-sarif@v3
       with:
-        sarif_file: results.sarif
+        sarif_file: govulncheck.sarif
         category: govulncheck
 
   gosec:
