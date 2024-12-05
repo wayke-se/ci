@@ -78,16 +78,3 @@ jobs:
         name: image
         path: /tmp/image.tar
         retention-days: 1
-
-  scan-docker-image:
-    needs:
-    - build-docker-image
-
-    uses: ./.github/workflows/docker-sast.yaml
-    with:
-      dockerfile: ${{ inputs.dockerfile }}
-      image: ${{ inputs.image-name || github.repository }}:${{ github.sha }}
-      registry-url: ${{ inputs.registry-url }}
-    secrets:
-      registry-username: ${{ secrets.registry-username }}
-      registry-password: ${{ secrets.registry-password }}

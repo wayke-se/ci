@@ -3,7 +3,7 @@ on:
     inputs:
       dockerfile:
         type: string
-        required: true
+        required: false
       image:
         type: string
         required: true
