@@ -70,9 +70,9 @@ jobs:
         test -f .golangci.yml && mv .golangci.yml .golangci.yaml
         if [ ! -f .golangci.yaml ]; then
           cat <<EOF > .golangci.yaml
-          run:
-            timeout: 5m
-          EOF
+run:
+  timeout: 5m
+EOF
         fi
 
     - name: Run golangci-lint
