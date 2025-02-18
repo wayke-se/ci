@@ -68,14 +68,19 @@ jobs:
     - name: Verify existence of config file
       run: |
         test -f .golangci.yml && mv .golangci.yml .golangci.yaml
-        test -f .golangci.yaml || echo "run:" > .golangci.yaml
+        if [ ! -f .golangci.yaml ]; then
+          cat <<EOF > .golangci.yaml
+          run:
+            timeout: 5m
+          EOF
+        fi
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
         version: latest
         skip-cache: true
-        args: --config .golangci.yaml --timeout 3m
+        args: --config .golangci.yaml
 
   sonatype-nancy:
     runs-on: ubuntu-latest
