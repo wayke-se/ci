@@ -66,7 +66,8 @@ jobs:
         go mod download
 
     - name: Verify existence of config file
-      run: test -f .golangci.yml && mv .golangci.yml .golangci.yaml; test -f .golangci.yaml || printf "run:\n  timeout: 5m\n" > .golangci.yaml
+      run: |
+        test -f .golangci.yml && mv .golangci.yml .golangci.yaml; test -f .golangci.yaml || printf "run:\n  timeout: 5m\n" > .golangci.yaml
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
