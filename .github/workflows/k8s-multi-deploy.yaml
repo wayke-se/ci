@@ -85,4 +85,16 @@ jobs:
       - name: Watch rollout
         if: ${{ inputs.watch }}
         run: |
+          # Auto-detect deployments from Kustomize output
+          echo "Auto-detecting deployments from Kustomize..."
+          DEPLOYMENTS=$(kubectl get -k ${{ inputs.kustomize }} -o json | jq -r '.items[] | select(.kind=="Deployment") | .metadata.name')
+          
+          if [ -z "$DEPLOYMENTS" ]; then
+            echo "No deployments found in Kustomize output. Falling back to service name."
             kubectl rollout status deploy/${{ inputs.service }} --watch
+          else
+            for deployment in $DEPLOYMENTS; do
+              echo "Watching rollout for deployment: $deployment"
+              kubectl rollout status deploy/$deployment --watch
+            done
+          fi
