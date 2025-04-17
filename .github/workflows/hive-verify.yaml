@@ -1,0 +1,39 @@
+on:
+    workflow_call:
+      inputs:
+        schema:
+          type: string
+          required: true
+        target:
+          type: string
+          required: true
+        service-name:
+          type: string
+          required: true
+      secrets:
+        HIVE_TOKEN:
+          required: true
+jobs:
+    verify-schema:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+        - name: Download artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: ${{ inputs.schema }}
+        - name: Dump all env vars
+          run: |
+            echo "TARGET: ${{ inputs.target }}"
+            echo "SERVICE_NAME: ${{ inputs.service-name }}"
+            echo "SCHEMA: ${{ inputs.schema }}"
+        - name: schema publish
+          run: |
+            curl -sSL https://graphql-hive.com/install.sh | sh
+            hive schema:check ${{ inputs.schema }} \
+              --registry.accessToken "${{ secrets.HIVE_TOKEN }}" \
+              --target "${{ inputs.target }}" \
+              --service "${{ inputs.service-name }}" \
+              --github \
+              --debug
