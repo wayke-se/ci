@@ -37,7 +37,7 @@ jobs:
 
     - name: Run Grype to check Docker image for vulnerabilities
       id: grype_scan
-      uses: anchore/scan-action@v3
+      uses: anchore/scan-action@v6
       with:
         image: ${{ inputs.registry-url }}/${{ inputs.image }}
         fail-build: false
