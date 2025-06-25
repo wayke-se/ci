@@ -35,47 +35,47 @@ jobs:
     timeout-minutes: 10
     environment: ${{ inputs.environment }}
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
 
-      - name: Prepare deployment files
-        run: |
-          pushd deploy/base
-          kustomize edit set image ${{ inputs.service }}="${{ inputs.image }}"
-          popd
+    - name: Prepare deployment files
+      run: |
+        pushd deploy/base
+        kustomize edit set image ${{ inputs.service }}="${{ inputs.image }}"
+        popd
 
-      - name: Set Sentry environment variables
-        if: inputs.sentry-config-map
-        run: |
-          pushd ${{ inputs.kustomize }}
-          kustomize edit add patch --kind ConfigMap --name ${{ inputs.sentry-config-map }} --patch "[\
-              {\"op\": \"add\", \"path\": \"/data/SENTRY_RELEASE\", \"value\": \"${{ github.sha }}\"},\
-              {\"op\": \"add\", \"path\": \"/data/SENTRY_ENVIRONMENT\", \"value\": \"${{ inputs.environment }}\"}\
-            ]"
-          popd
+    - name: Set Sentry environment variables
+      if: inputs.sentry-config-map
+      run: |
+        pushd ${{ inputs.kustomize }}
+        kustomize edit add patch --kind ConfigMap --name ${{ inputs.sentry-config-map }} --patch "[\
+            {\"op\": \"add\", \"path\": \"/data/SENTRY_RELEASE\", \"value\": \"${{ github.sha }}\"},\
+            {\"op\": \"add\", \"path\": \"/data/SENTRY_ENVIRONMENT\", \"value\": \"${{ inputs.environment }}\"}\
+          ]"
+        popd
 
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.credentials }}
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.credentials }}
 
-      - name: Connect to Azure Kubernetes Service
-        uses: azure/aks-set-context@v3
-        with:
-          cluster-name: ${{ inputs.cluster }}
-          resource-group: ${{ inputs.environment }}
-          admin: "true"
+    - name: Connect to Azure Kubernetes Service
+      uses: azure/aks-set-context@v3
+      with:
+        cluster-name: ${{ inputs.cluster }}
+        resource-group: ${{ inputs.environment }}
+        admin: "true"
 
-      - name: Dry run Kustomize to verify deploy files
-        run: |
-          kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
+    - name: Dry run Kustomize to verify deploy files
+      run: |
+        kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
 
-      - name: Deploy to Azure Kubernetes Service
-        run: |
-          kubectl apply --kustomize ${{ inputs.kustomize }}
+    - name: Deploy to Azure Kubernetes Service
+      run: |
+        kubectl apply --kustomize ${{ inputs.kustomize }}
 
-      - name: Watch rollout
-        if: ${{ inputs.watch }}
-        run: |
-          kubectl rollout status deploy/${{ inputs.service }} --watch
+    - name: Watch rollout
+      if: ${{ inputs.watch }}
+      run: |
+        kubectl rollout status deploy/${{ inputs.service }} --watch

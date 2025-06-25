@@ -22,21 +22,21 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v3
 
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.credentials }}
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.credentials }}
 
-      - name: Connect to Azure Kubernetes Service
-        uses: azure/aks-set-context@v3
-        with:
-          cluster-name: ${{ inputs.cluster }}
-          resource-group: ${{ inputs.environment }}
+    - name: Connect to Azure Kubernetes Service
+      uses: azure/aks-set-context@v3
+      with:
+        cluster-name: ${{ inputs.cluster }}
+        resource-group: ${{ inputs.environment }}
 
-      - name: Dry run Kustomize
-        run: |
-          kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
+    - name: Dry run Kustomize
+      run: |
+        kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
