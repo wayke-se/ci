@@ -67,7 +67,33 @@ jobs:
 
     - name: Verify existence of config file
       run: |
-        test -f .golangci.yml && mv .golangci.yml .golangci.yaml; test -f .golangci.yaml || printf "run:\n  timeout: 5m\n" > .golangci.yaml
+        if test -f .golangci.yml; then
+          mv .golangci.yml .golangci.yaml
+        fi
+        if ! test -f .golangci.yaml; then
+          cat > .golangci.yaml << 'EOF'
+version: "2"
+linters:
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+EOF
+        fi
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v8
