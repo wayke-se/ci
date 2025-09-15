@@ -23,7 +23,7 @@ name: "Run SAST for .NET"
 jobs:
   package-scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@v4
