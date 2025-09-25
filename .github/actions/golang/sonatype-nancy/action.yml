@@ -5,9 +5,15 @@ inputs:
     description: dependency list file
     required: false
     default: requirements.txt
+  nancy-token:
+    description: Nancy API token for authentication
+    required: true
 runs:
   using: docker
   image: Dockerfile
+  env:
+    OSSI_TOKEN: ${{ inputs.nancy-token }}
+    OSSI_USERNAME: admin@wayketech.se
   args: [
     "--dep-file", "${{ inputs.file }}"
   ]
