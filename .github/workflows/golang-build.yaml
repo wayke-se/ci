@@ -36,6 +36,8 @@ on:
         required: false
       snyk-token:
         required: false
+      nancy-token:
+        required: false
     outputs:
       image:
         value: ${{ jobs.build-docker-image.outputs.image }}
@@ -49,6 +51,7 @@ jobs:
       go-version: ${{ inputs.go-version }}
     secrets:
       go-token: ${{ secrets.go-token }}
+      nancy-token: ${{ secrets.nancy-token }}
 
   build-docker-image:
     runs-on: ubuntu-latest
