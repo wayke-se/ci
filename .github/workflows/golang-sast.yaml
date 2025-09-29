@@ -17,7 +17,9 @@ on:
         required: false
       snyk-token:
         required: false
-
+      nancy-token:
+        required: false
+  
 name: "Run SAST for Go"
 
 jobs:
@@ -130,6 +132,7 @@ jobs:
       uses: wayke-se/ci/.github/actions/golang/sonatype-nancy@master
       with:
         file: go.list
+        nancy-token: ${{ secrets.nancy-token }}
 
   govulncheck:
     runs-on: ubuntu-latest
