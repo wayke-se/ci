@@ -92,7 +92,7 @@ DEPLOYMENT_SUFFIX=$(echo "${APP_VERSION}-${TIMESTAMP}" | sha256sum | head -c 7)
 ###
 # Store a flag to determine if there's a deployment active
 ###
-PREVIOUS_VERSION=$(kubectl get deploy -l app=${APP_NAME} -o json | jq -r '.items[0].metadata.name')
+PREVIOUS_VERSIONS=$(kubectl get deploy -l app=${APP_NAME} -o json | jq -r '.items[].metadata.name')
 
 ###
 # If there's no existing Service resource, let's create it
@@ -143,6 +143,8 @@ kubectl patch svc/"${APP_NAME}" --patch "$(cat "${PATCH_FILE}")"
 # If we had an active deployment before this release,
 # clean it up
 ###
-if [ ! -z "${PREVIOUS_VERSION}" ]; then
-    kubectl delete deploy "${PREVIOUS_VERSION}"
+if [ ! -z "${PREVIOUS_VERSIONS}" ]; then
+    for deploy in ${PREVIOUS_VERSIONS}; do
+        kubectl delete deploy "${deploy}"
+    done
 fi
