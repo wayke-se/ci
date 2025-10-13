@@ -71,7 +71,7 @@ jobs:
           kubectl apply --dry-run=client --kustomize ${{ inputs.kustomize }}
 
       - name: Connect and deploy using blue/green deployment strategy
-        uses: wayke-se/ci/.github/actions/k8s/blue-green-deploy@master
+        uses: wayke-se/ci/.github/actions/k8s/blue-green-deploy@feature/blue-green-cleanup
         with:
           app-name: ${{ inputs.service }}
           app-version: ${{ github.sha }}
