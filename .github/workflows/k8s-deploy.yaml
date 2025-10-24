@@ -42,7 +42,7 @@ jobs:
 
       - name: Prepare deployment files
         run: |
-          pushd {{ inputs.kustomize }}
+          pushd ${{ inputs.kustomize }}
           kustomize edit set image ${{ inputs.service }}="${{ inputs.image }}"
           popd
 
