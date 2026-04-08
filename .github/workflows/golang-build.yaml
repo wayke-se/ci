@@ -19,6 +19,10 @@ on:
         type: boolean
         required: false
         default: false
+      skip-govulncheck:
+        type: boolean
+        required: false
+        default: false
       context:
         type: string
         required: false
@@ -49,6 +53,7 @@ jobs:
     uses: ./.github/workflows/golang-sast.yaml
     with:
       go-version: ${{ inputs.go-version }}
+      skip-govulncheck: ${{ inputs.skip-govulncheck }}
     secrets:
       go-token: ${{ secrets.go-token }}
       nancy-token: ${{ secrets.nancy-token }}
