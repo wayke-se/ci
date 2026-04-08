@@ -12,6 +12,10 @@ on:
         type: boolean
         required: false
         default: false
+      skip-govulncheck:
+        type: boolean
+        required: false
+        default: false
     secrets:
       go-token:
         required: false
@@ -135,6 +139,7 @@ jobs:
         nancy-token: ${{ secrets.nancy-token }}
 
   govulncheck:
+    if: ${{ !inputs.skip-govulncheck }}
     runs-on: ubuntu-latest
     timeout-minutes: 2
 
