@@ -12,6 +12,11 @@ on:
         type: boolean
         required: false
         default: false
+      ignore-advisories:
+        type: string
+        required: false
+        default: ""
+        description: "Space-separated list of GHSA advisory IDs to ignore (e.g. 'GHSA-rvv3-g6hj-g44x')."
     secrets:
       nuget-token:
         required: false
@@ -42,7 +47,24 @@ jobs:
           dotnet restore
 
       - name: Run package scanner
+        env:
+          IGNORE_ADVISORIES: ${{ inputs.ignore-advisories }}
         run: |
           RESULT=$(dotnet list package --vulnerable --include-transitive)
           echo "${RESULT}"
-          test $(echo "${RESULT}" | grep -cm 1 "following vulnerable packages") -ne 1
+
+          TOTAL=$(echo "${RESULT}" | grep -c "https://github.com/advisories/" || true)
+          IGNORED=0
+          for adv in ${IGNORE_ADVISORIES}; do
+            MATCHES=$(echo "${RESULT}" | grep -c "${adv}" || true)
+            if [ "${MATCHES}" -gt 0 ]; then
+              echo "Ignoring ${MATCHES} occurrence(s) of advisory: ${adv}"
+              IGNORED=$((IGNORED + MATCHES))
+            fi
+          done
+
+          REMAINING=$((TOTAL - IGNORED))
+          if [ "${REMAINING}" -gt 0 ]; then
+            echo "Found ${REMAINING} un-ignored vulnerable package reference(s)."
+            exit 1
+          fi
