@@ -20,6 +20,11 @@ on:
         type: boolean
         required: false
         default: false
+      rollout-targets:
+        type: string
+        required: false
+        default: ''
+        description: 'Comma-separated deployment names to watch. Defaults to `service` when empty.'
       sentry-config-map:
         type: string
         required: false
@@ -78,4 +83,11 @@ jobs:
       - name: Watch rollout
         if: ${{ inputs.watch }}
         run: |
-          kubectl rollout status deploy/${{ inputs.service }} --watch
+          TARGETS="${{ inputs.rollout-targets }}"
+          if [ -z "$TARGETS" ]; then
+            TARGETS="${{ inputs.service }}"
+          fi
+          IFS=',' read -ra DEPLOYS <<< "$TARGETS"
+          for d in "${DEPLOYS[@]}"; do
+            kubectl rollout status deploy/"$d" --watch
+          done
