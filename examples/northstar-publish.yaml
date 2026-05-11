@@ -1,0 +1,24 @@
+# Standalone publisher for repos that don't go through a k8s-* deploy workflow.
+# Drop this into a source repo at .github/workflows/northstar-publish.yaml.
+#
+# Requires org-level secrets ANTHROPIC_API_KEY and NORTHSTAR_WRITE_TOKEN.
+# `secrets: inherit` forwards them by name — no per-repo secret setup needed.
+#
+# Repos that already use a k8s-* deploy workflow do NOT need this file:
+# northstar publish runs automatically after k8s deploys on main/master/test.
+
+name: Publish to northstar
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - test
+
+jobs:
+  publish:
+    # Pin to @master once the workflow is merged into wayke-se/ci master.
+    # Until then, pin to the branch where it lives (e.g. @feature/northstar).
+    uses: wayke-se/ci/.github/workflows/northstar-publish.yaml@master
+    secrets: inherit

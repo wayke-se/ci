@@ -1,0 +1,145 @@
+on:
+  workflow_call:
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: false
+      NORTHSTAR_WRITE_TOKEN:
+        required: false
+
+name: "Publish to northstar"
+
+# Both secrets are expected to exist at the org level. Callers either use
+# `secrets: inherit` (passes both org secrets by their canonical names) or
+# map them explicitly with the same key casing. If either is missing the
+# job exits cleanly with a warning, so callers not yet wired don't fail red.
+
+permissions:
+  contents: read
+
+concurrency:
+  group: northstar-publish-${{ github.event.repository.name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check secrets
+        id: check
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NORTHSTAR_WRITE_TOKEN: ${{ secrets.NORTHSTAR_WRITE_TOKEN }}
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY:-}" ] || [ -z "${NORTHSTAR_WRITE_TOKEN:-}" ]; then
+            echo "::warning::ANTHROPIC_API_KEY or NORTHSTAR_WRITE_TOKEN not set — skipping northstar publish. See wayke-se/ci README for wiring."
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout source repo
+        if: steps.check.outputs.proceed == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 50
+          path: source
+
+      - name: Checkout northstar
+        if: steps.check.outputs.proceed == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: wayke-se/northstar
+          token: ${{ secrets.NORTHSTAR_WRITE_TOKEN }}
+          path: northstar
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        if: steps.check.outputs.proceed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install Claude Code
+        if: steps.check.outputs.proceed == 'true'
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Compute commit messages
+        if: steps.check.outputs.proceed == 'true'
+        id: commits
+        working-directory: source
+        run: |
+          set -euo pipefail
+          PREV="${{ github.event.before }}"
+          CUR="${{ github.sha }}"
+          ZERO="0000000000000000000000000000000000000000"
+          if [ -z "$PREV" ] || [ "$PREV" = "$ZERO" ]; then
+            MESSAGES="$(git log --format=%s -n 50 "$CUR")"
+          else
+            MESSAGES="$(git log --format=%s "$PREV".."$CUR" || git log --format=%s -n 50 "$CUR")"
+          fi
+          {
+            echo 'messages<<NORTHSTAR_EOF'
+            echo "$MESSAGES"
+            echo 'NORTHSTAR_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run Claude Code extraction
+        if: steps.check.outputs.proceed == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SOURCE_REPO_PATH: ${{ github.workspace }}/source
+          NORTHSTAR_PATH: ${{ github.workspace }}/northstar
+          REPO_NAME: ${{ github.event.repository.name }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          PREVIOUS_SHA: ${{ github.event.before }}
+          COMMIT_MESSAGES: ${{ steps.commits.outputs.messages }}
+        run: |
+          set -euo pipefail
+          PROMPT_BODY="$(cat "${NORTHSTAR_PATH}/EXTRACT_PROMPT.md")"
+          ORCHESTRATOR_OVERRIDE=$'\n\n---\n\n## Orchestrator override (do not ignore)\n\nYou are running inside the wayke-se/ci northstar-publish workflow. Write files only inside $NORTHSTAR_PATH/$REPO_NAME/. Do NOT run `git add`, `git commit`, or `git push` — the surrounding workflow handles staging, commit message, and rebase-retry push. Ignore step 6 of the execution order above.'
+          claude \
+            --print \
+            --dangerously-skip-permissions \
+            "${PROMPT_BODY}${ORCHESTRATOR_OVERRIDE}"
+
+      - name: Commit and push to northstar
+        if: steps.check.outputs.proceed == 'true'
+        working-directory: northstar
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "northstar-bot"
+          git config user.email "northstar-bot@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "No changes to publish; skipping."
+            exit 0
+          fi
+
+          SHORT_SHA="${SHA:0:7}"
+          git commit -m "chore: ${REPO_NAME} @ ${SHORT_SHA}"
+
+          ATTEMPT=1
+          MAX_ATTEMPTS=3
+          while [ "$ATTEMPT" -le "$MAX_ATTEMPTS" ]; do
+            if git push origin HEAD:master; then
+              echo "Pushed on attempt ${ATTEMPT}."
+              exit 0
+            fi
+            if [ "$ATTEMPT" -eq "$MAX_ATTEMPTS" ]; then
+              echo "Push failed after ${MAX_ATTEMPTS} attempts." >&2
+              exit 1
+            fi
+            JITTER=$(( (RANDOM % 4) + 2 ))
+            echo "Push rejected; rebasing and retrying in ${JITTER}s (attempt $((ATTEMPT+1))/${MAX_ATTEMPTS})."
+            sleep "$JITTER"
+            git pull --rebase origin master
+            ATTEMPT=$((ATTEMPT + 1))
+          done

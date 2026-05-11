@@ -22,9 +22,18 @@ on:
       sentry-config-map:
         type: string
         required: false
+      publish-to-northstar:
+        type: boolean
+        required: false
+        default: true
+        description: 'Publish repo state to wayke-se/northstar after a successful deploy on main/master/test. Set to false to opt out.'
     secrets:
       credentials:
         required: true
+      anthropic-api-key:
+        required: false
+      northstar-write-token:
+        required: false
 
 name: "Blue/green deploy dockerized application"
 
@@ -80,3 +89,11 @@ jobs:
           credentials: ${{ secrets.credentials }}
           resource-group: ${{ inputs.environment }}
           cluster: ${{ inputs.cluster }}
+
+  publish-northstar:
+    needs: deploy-app
+    if: ${{ inputs.publish-to-northstar && (github.ref_name == 'main' || github.ref_name == 'master' || github.ref_name == 'test') }}
+    uses: ./.github/workflows/northstar-publish.yaml
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.anthropic-api-key }}
+      NORTHSTAR_WRITE_TOKEN: ${{ secrets.northstar-write-token }}
