@@ -141,9 +141,17 @@ kubectl patch svc/"${APP_NAME}" --patch "$(cat "${PATCH_FILE}")"
 
 ###
 # If we had an active deployment before this release,
-# clean it up
+# clean it up.
+#
+# Wait before deleting: the Service selector patch above moves
+# traffic to the new pods, but ingress controllers pick up the
+# new endpoints asynchronously. Deleting the old deployment
+# immediately kills all its pods at once, which surfaces as
+# intermittent 502s (Cloudflare "host error") on every deploy.
 ###
 if [ ! -z "${PREVIOUS_VERSIONS}" ]; then
+    sleep 10
+
     for deploy in ${PREVIOUS_VERSIONS}; do
         kubectl delete deploy "${deploy}"
     done
