@@ -1,0 +1,17 @@
+name: Hive contract tags
+description: >-
+  Derives Hive schema-contract tags from Wayke's runtime auth directives in a
+  subgraph SDL (@public -> @tag(name:"public"), @admin -> @tag(name:"admin"))
+  so contracts can filter on them. Rewrites the schema file in place.
+inputs:
+  schema:
+    description: Path to the subgraph SDL file (edited in place)
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Derive contract tags
+      shell: bash
+      run: |
+        npm install --silent --no-save --no-package-lock --prefix "$GITHUB_ACTION_PATH" graphql@16.14.2
+        node "$GITHUB_ACTION_PATH/tag-contracts.mjs" "${{ inputs.schema }}"
