@@ -26,6 +26,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.schema }}
+      - name: Derive contract tags
+        uses: wayke-se/ci/.github/actions/hive/tag-contracts@master
+        with:
+          schema: ${{ inputs.schema }}
       - name: Dump all env vars
         run: |
           echo "TARGET: ${{ inputs.target }}"
