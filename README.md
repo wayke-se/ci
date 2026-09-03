@@ -15,7 +15,10 @@ its schema: a field with `@public` gets `@tag(name: "public")`, `@admin` gets
 - object/interface types it reaches: fields carrying the directive are tagged one by
   one; a reached type with no such field is public as a whole (root-gated services
   such as cross-domain-search), every field, recursively;
-- the same field on every type implementing a tagged interface field.
+- the same field on every type implementing a tagged interface field;
+- argument types of composed directives (`@composeDirective`), with every tag: those
+  definitions survive into the contract's public SDL, and a removed argument type
+  makes that SDL invalid (process-flow's Mesh `@resolveTo`).
 
 `@external` fields are never tagged (composition error), nor `_service`/`_entities`.
 Object types are never tagged on the type: Hive's tag register is global per

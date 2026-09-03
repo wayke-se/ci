@@ -139,3 +139,24 @@ test("no auth directives: leaves the SDL alone", () => {
   const plain = `type Query { a: String }\nunion U = Query\n`;
   assert.equal(tagContracts(plain).sdl, plain);
 });
+
+test("argument types of composed directives stay accessible in every contract", () => {
+  const mesh = `schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@tag", "@composeDirective"]) @link(url: "https://the-guild.dev/graphql/mesh/spec/v1.0", import: ["@transport", "@resolveTo"]) @composeDirective(name: "@transport") @composeDirective(name: "@resolveTo") {
+  query: Query
+}
+directive @transport(kind: String!, options: TransportOptions) repeatable on SCHEMA
+directive @resolveTo(sourceArgs: ResolveToSourceArgs, sourceName: String) on FIELD_DEFINITION
+directive @local(shape: LocalShape) on FIELD_DEFINITION
+scalar TransportOptions
+scalar ResolveToSourceArgs
+input LocalShape { a: String }
+type Query { a: String }
+`;
+  const { sdl, stats } = tagContracts(mesh);
+  parse(sdl);
+  assert.match(sdl, /^scalar TransportOptions @tag\(name: "public"\) @tag\(name: "admin"\)$/m);
+  assert.match(sdl, /^scalar ResolveToSourceArgs @tag\(name: "public"\) @tag\(name: "admin"\)$/m);
+  assert.match(sdl, /^input LocalShape \{ a: String \}$/m); // @local is not composed
+  assert.equal(stats.types, 4);
+  assert.equal(tagContracts(sdl).sdl, sdl);
+});

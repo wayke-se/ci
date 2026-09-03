@@ -15,7 +15,10 @@
 //     never tagged on the type: Hive's tag register is global per coordinate,
 //     so tagging an entity stub's type would open every field of that entity
 //     in every subgraph;
-//   - the same field on every type implementing a tagged interface field.
+//   - the same field on every type implementing a tagged interface field;
+//   - argument types of composed directives (@composeDirective), with every
+//     tag: those definitions survive into the contract's public SDL, and a
+//     removed argument type makes that SDL invalid (Mesh's @resolveTo etc.).
 //
 // Also makes sure "@tag" is in the federation @link import list. Skips
 // @external fields (a merged directive on them is a composition error) and the
@@ -144,6 +147,32 @@ export function tagContracts(sdl) {
       if (kind !== "object" && kind !== "interface") continue;
       for (const n of nodes) for (const f of n.fields ?? []) if (directiveOf(f, directive)) tagField(name, f);
     }
+  }
+
+  const composed = new Set();
+  for (const def of doc.definitions) {
+    if (def.kind !== "SchemaDefinition" && def.kind !== "SchemaExtension") continue;
+    for (const d of def.directives ?? []) {
+      const name = d.name.value === "composeDirective" && d.arguments?.find((a) => a.name.value === "name")?.value;
+      if (name?.kind === "StringValue") composed.add(name.value.replace(/^@/, ""));
+    }
+  }
+  for (const def of doc.definitions) {
+    if (def.kind !== "DirectiveDefinition" || !composed.has(def.name.value)) continue;
+    const seen = new Set();
+    const keep = (name) => {
+      if (seen.has(name) || !["scalar", "enum", "input"].includes(kindOf(name))) return;
+      seen.add(name);
+      const node = nodesByType.get(name)[0];
+      for (const tag of Object.values(DIRECTIVE_TO_TAG)) {
+        usedTags.add(tag);
+        if (hasTag(node, tag)) continue;
+        inserts.push([typeInsertPoint(node), ` @tag(name: "${tag}")`]);
+        stats.types++;
+      }
+      if (kindOf(name) === "input") for (const f of fieldsOf(name)) keep(namedType(f.type));
+    };
+    for (const arg of def.arguments ?? []) keep(namedType(arg.type));
   }
 
   if (usedTags.size > 0) {
