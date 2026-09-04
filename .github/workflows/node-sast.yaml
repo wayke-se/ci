@@ -13,10 +13,9 @@ name: "Run SAST for NodeJS"
 jobs:
   npm-audit:
     runs-on: ubuntu-latest
-    # A cold `npm ci` on web-ui-v2 ran 2m13s on 2026-09-04 and got cancelled by the old
-    # 2-minute cap ("The operation was canceled" in the step log), on two branches in a
-    # row. 4 minutes leaves headroom for a slow registry day; the npm cache below keeps
-    # the normal case well under a minute.
+    # The audit is registry-bound: on a slow npm day (2026-09-04) a lockfile-only audit of
+    # web-ui-v2 took 3m50s of pure network wait, and the old 2-minute cap cancelled the
+    # job ("The operation was canceled" in the step log). Normal days finish in seconds.
     timeout-minutes: 4
 
     steps:
@@ -27,12 +26,16 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
           registry-url: 'https://npm.pkg.github.com'
-          # Restores ~/.npm keyed on the caller's package-lock.json, so `npm ci` below
-          # downloads only what changed since the last run instead of the whole tree.
-          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci --ignore-scripts --force
+      # `npm audit --package-lock-only` builds the tree from the lockfile alone and never
+      # reads node_modules, so the old `npm ci` step (there since the workflow was first
+      # added, alongside a since-removed Snyk job) bought nothing but a cold install. The
+      # one thing it guaranteed as a side effect — that a lockfile exists — is checked
+      # explicitly here instead: without one, a lockfile-only audit would silently
+      # resolve a fresh tree from the registry and audit that rather than what ships.
+      - name: Require a lockfile
+        run: |
+          test -f package-lock.json || { echo "::error::package-lock.json is missing — npm audit needs the committed lockfile"; exit 1; }
 
       - name: Run npm audit
         run: |
