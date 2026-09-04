@@ -21,11 +21,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # No registry-url: setup-node's npm.pkg.github.com value only ever mapped the
+      # @<owner> scope to GitHub Packages for an install, and `npm audit` talks to the
+      # default registry (npmjs) for the whole tree regardless of scope mappings.
       - name: Use Node
         uses: actions/setup-node@v6
         with:
           node-version: ${{ inputs.node-version }}
-          registry-url: 'https://npm.pkg.github.com'
 
       # `npm audit --package-lock-only` builds the tree from the lockfile alone and never
       # reads node_modules, so the old `npm ci` step (there since the workflow was first
