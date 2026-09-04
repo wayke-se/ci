@@ -13,7 +13,11 @@ name: "Run SAST for NodeJS"
 jobs:
   npm-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    # A cold `npm ci` on web-ui-v2 ran 2m13s on 2026-09-04 and got cancelled by the old
+    # 2-minute cap ("The operation was canceled" in the step log), on two branches in a
+    # row. 4 minutes leaves headroom for a slow registry day; the npm cache below keeps
+    # the normal case well under a minute.
+    timeout-minutes: 4
 
     steps:
       - uses: actions/checkout@v6
@@ -23,7 +27,10 @@ jobs:
         with:
           node-version: ${{ inputs.node-version }}
           registry-url: 'https://npm.pkg.github.com'
-      
+          # Restores ~/.npm keyed on the caller's package-lock.json, so `npm ci` below
+          # downloads only what changed since the last run instead of the whole tree.
+          cache: 'npm'
+
       - name: Install dependencies
         run: npm ci --ignore-scripts --force
 
