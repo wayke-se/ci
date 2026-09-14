@@ -16,6 +16,10 @@ on:
         type: boolean
         required: false
         default: false
+      skip-nancy:
+        type: boolean
+        required: false
+        default: false
     secrets:
       go-token:
         required: false
@@ -109,6 +113,7 @@ jobs:
         args: --config .golangci.yaml
 
   sonatype-nancy:
+    if: ${{ !inputs.skip-nancy }}
     runs-on: ubuntu-latest
     timeout-minutes: 2
 
