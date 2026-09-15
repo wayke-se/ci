@@ -39,10 +39,19 @@ jobs:
       - name: schema publish
         run: |
           curl -sSL https://graphql-hive.com/install.sh | sh
+          # With --github the CLI reports the verdict as a GitHub check on the
+          # commit and exits 0 whether composition passed or not (a deploy went
+          # out with 42 composition errors on 2026-09-15). Gate on the verdict
+          # it printed: 'Detected N errors' / 'Detected N breaking changes'.
+          set -o pipefail
           hive schema:publish ${{ inputs.schema }} \
             --registry.accessToken "${{ secrets.HIVE_TOKEN }}" \
             --target "${{ inputs.target }}" \
             --service "${{ inputs.service-name }}" \
             --url "${{ inputs.url }}" \
             --github \
-            --debug
+            --debug | tee hive.log
+          if grep -Eq 'Detected [1-9][0-9]* (error|breaking)' hive.log; then
+            echo "::error::Hive schema:publish reported errors; see the GraphQL Hive check on this commit"
+            exit 1
+          fi
